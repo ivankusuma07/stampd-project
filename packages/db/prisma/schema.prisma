@@ -1,0 +1,577 @@
+// STAMPD data model — plan file B7, plus the tables the development plan needs
+// (AI call log, indexer cursor, alerts, takedowns, audit log, faucet claims).
+//
+// Conventions: money and share amounts are raw 6-decimal integers stored as NUMERIC(78,0),
+// never floats. Wallet addresses are stored lowercase. Onchain market ids are BigInt.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------- enums
+
+enum PostSource {
+  TIMELINE
+  WEB
+}
+
+enum PredictionStatus {
+  DRAFT
+  IN_REVIEW
+  APPROVED
+  PUBLISHED
+  REJECTED
+}
+
+enum ModerationRoute {
+  AUTO_PUBLISH
+  REVIEW
+  AUTO_REJECT
+}
+
+enum SubmissionStatus {
+  QUEUED
+  DRAFTED
+  IN_REVIEW
+  APPROVED
+  REJECTED
+}
+
+enum MarketStatus {
+  PENDING // approved, createMarket tx not yet indexed
+  OPEN
+  CLOSED
+  PROPOSED
+  DISPUTED
+  RESOLVED
+}
+
+enum Outcome {
+  YES
+  NO
+}
+
+enum Result {
+  YES
+  NO
+  INVALID
+}
+
+enum NotificationType {
+  NEW_MARKET
+  RESOLVED
+  REDEEMABLE
+  SUBMISSION
+}
+
+enum IngestStatus {
+  RUNNING
+  OK
+  FAILED
+  SKIPPED
+}
+
+enum TakedownStatus {
+  OPEN
+  EXCLUDED
+  REJECTED
+}
+
+// ---------------------------------------------------------------- X data
+
+model Kol {
+  id                 String    @id @default(cuid())
+  xHandle            String    @unique
+  xUserId            String?   @unique
+  name               String
+  avatarUrl          String?
+  /// false for authors known only from web submissions: they get a profile but aren't polled
+  tracked            Boolean   @default(true)
+  /// set by an admin after a takedown request; skipped by ingest and validators
+  excluded           Boolean   @default(false)
+  excludedReason     String?
+  /// minutes between timeline fetches (busy KOLs lower)
+  pollIntervalMin    Int       @default(30)
+  lastSeenPostId     String?
+  lastFetchedAt      DateTime?
+  profileRefreshedAt DateTime?
+  createdAt          DateTime  @default(now())
+
+  posts     Post[]
+  markets   Market[]
+  followers Follow[]
+  stats     KolStats?
+  ingest    IngestRun[]
+}
+
+model Post {
+  id           String    @id @default(cuid())
+  xPostId      String    @unique
+  kolId        String?
+  authorHandle String
+  authorId     String
+  text         String
+  postedAt     DateTime
+  url          String
+  replyToId    String?
+  quotedId     String?
+  isRepost     Boolean   @default(false)
+  /// set when reconciliation finds the post deleted on X (plan R4); text is then cleared
+  deletedAt    DateTime?
+  createdAt    DateTime  @default(now())
+
+  kol         Kol?         @relation(fields: [kolId], references: [id])
+  predictions Prediction[]
+
+  @@index([kolId, postedAt])
+}
+
+// ---------------------------------------------------------------- drafts + moderation
+
+model Prediction {
+  id              String           @id @default(cuid())
+  postId          String
+  source          PostSource
+  submittedBy     String?
+  status          PredictionStatus @default(DRAFT)
+  /// AI pass 1 output (packages/ai ExtractedClaim)
+  extracted       Json?
+  /// AI pass 2 checklist output
+  check           Json?
+  /// code validator failures, [] when all pass
+  validatorErrors Json             @default("[]")
+  route           ModerationRoute?
+  /// auto-publish template the draft fits, if any
+  template        String?
+  /// what the AI routing would have decided, logged beside the human decision (plan B10a rollout)
+  aiDecision      String?
+  humanDecision   String?
+  reviewerWallet  String?
+  reviewReason    String?
+  reviewedAt      DateTime?
+  /// true when the reviewer changed the AI draft before approving
+  edited          Boolean          @default(false)
+  /// the final spec (after human edits) whose hash goes onchain
+  spec            Json?
+  /// market creation parameters, set on approval
+  seedAmount      Decimal?         @db.Decimal(78, 0)
+  openingPriceBps Int?
+  feeBps          Int?
+  createTxHash    String?
+  createError     String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  post        Post         @relation(fields: [postId], references: [id])
+  market      Market?
+  aiCalls     AiCall[]
+  submissions Submission[]
+
+  @@index([status, createdAt])
+}
+
+model AiCall {
+  id           String   @id @default(cuid())
+  predictionId String?
+  stage        String // "extract" | "check"
+  model        String
+  inputTokens  Int
+  outputTokens Int
+  costUsd      Decimal  @db.Decimal(12, 6)
+  latencyMs    Int
+  ok           Boolean
+  output       Json?
+  error        String?
+  createdAt    DateTime @default(now())
+
+  prediction Prediction? @relation(fields: [predictionId], references: [id])
+}
+
+model Submission {
+  id           String           @id @default(cuid())
+  wallet       String
+  xPostUrl     String
+  xPostId      String
+  status       SubmissionStatus @default(QUEUED)
+  reason       String?
+  predictionId String?
+  attempts     Int              @default(0)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  prediction Prediction? @relation(fields: [predictionId], references: [id])
+
+  @@unique([wallet, xPostId])
+  @@index([wallet, createdAt])
+  @@index([status])
+}
+
+// ---------------------------------------------------------------- markets (read model from chain)
+
+model Market {
+  id                        String       @id @default(cuid())
+  onchainId                 BigInt?      @unique
+  chainId                   Int
+  predictionId              String?      @unique
+  kolId                     String
+  question                  String
+  rules                     String
+  spec                      Json
+  questionHash              String       @unique
+  specUri                   String?
+  category                  String
+  sourcePostId              String
+  sourcePostUrl             String
+  kolSide                   Outcome
+  closeTime                 DateTime
+  resolveBy                 DateTime
+  status                    MarketStatus @default(PENDING)
+  result                    Result?
+  paused                    Boolean      @default(false)
+  feeBps                    Int
+  seedAmount                Decimal      @db.Decimal(78, 0)
+  openingYesPriceBps        Int
+  yesPriceBps               Int
+  yesReserve                Decimal      @default(0) @db.Decimal(78, 0)
+  noReserve                 Decimal      @default(0) @db.Decimal(78, 0)
+  collateral                Decimal      @default(0) @db.Decimal(78, 0)
+  fees                      Decimal      @default(0) @db.Decimal(78, 0)
+  volume                    Decimal      @default(0) @db.Decimal(78, 0)
+  tradeCount                Int          @default(0)
+  /// captcha-verified wallets that traded in the first 24h (edge eligibility, plan B7)
+  uniqueVerifiedTraders24h  Int          @default(0)
+  firstTradeAt              DateTime?
+  /// 24h TWAP of the KOL's side, from first trade (edge score `p`)
+  kolSideTwap24hBps         Int?
+  submittedBy               String?
+  createTxHash              String?
+  openedAt                  DateTime?
+  openedBlock               BigInt?
+  settledAt                 DateTime?
+  settledTxHash             String?
+  createdAt                 DateTime     @default(now())
+  updatedAt                 DateTime     @updatedAt
+
+  kol         Kol           @relation(fields: [kolId], references: [id])
+  prediction  Prediction?   @relation(fields: [predictionId], references: [id])
+  trades      Trade[]
+  positions   Position[]
+  prices      PricePoint[]
+  resolution  Resolution?
+  watchers    Watch[]
+  callouts    Callout[]
+  flags       MarketFlag[]
+
+  @@index([status, closeTime])
+  @@index([kolId, status])
+  @@index([category, status])
+}
+
+model Trade {
+  id            String   @id @default(cuid())
+  txHash        String
+  logIndex      Int
+  marketId      String
+  wallet        String
+  outcome       Outcome
+  isBuy         Boolean
+  collateral    Decimal  @db.Decimal(78, 0)
+  shares        Decimal  @db.Decimal(78, 0)
+  fee           Decimal  @db.Decimal(78, 0)
+  priceAfterBps Int
+  blockNumber   BigInt
+  blockTime     DateTime
+
+  market Market @relation(fields: [marketId], references: [id])
+
+  @@unique([txHash, logIndex])
+  @@index([marketId, blockTime])
+  @@index([wallet, blockTime])
+}
+
+model Position {
+  wallet      String
+  marketId    String
+  yesShares   Decimal   @default(0) @db.Decimal(78, 0)
+  noShares    Decimal   @default(0) @db.Decimal(78, 0)
+  /// collateral spent minus collateral received from sells
+  costBasis   Decimal   @default(0) @db.Decimal(78, 0)
+  realizedPnl Decimal   @default(0) @db.Decimal(78, 0)
+  redeemedAt  DateTime?
+  payout      Decimal?  @db.Decimal(78, 0)
+  updatedAt   DateTime  @updatedAt
+
+  market Market @relation(fields: [marketId], references: [id])
+
+  @@id([wallet, marketId])
+  @@index([marketId])
+}
+
+model PricePoint {
+  id          BigInt   @id @default(autoincrement())
+  marketId    String
+  t           DateTime
+  yesPriceBps Int
+  /// "trade" (after each trade) or "snapshot" (every 5 minutes)
+  source      String
+
+  market Market @relation(fields: [marketId], references: [id])
+
+  @@unique([marketId, t, source])
+  @@index([marketId, t])
+}
+
+model Resolution {
+  marketId        String    @id
+  proposedOutcome Result
+  proposer        String
+  evidenceUri     String
+  evidence        Json?
+  disputeEnds     DateTime
+  disputed        Boolean   @default(false)
+  disputer        String?
+  finalOutcome    Result?
+  proposedTxHash  String
+  finalizedAt     DateTime?
+  finalizedTxHash String?
+
+  market Market @relation(fields: [marketId], references: [id])
+}
+
+// ---------------------------------------------------------------- users + social
+
+model User {
+  wallet            String    @id
+  displayName       String?
+  points            Int       @default(0)
+  captchaVerifiedAt DateTime?
+  createdAt         DateTime  @default(now())
+
+  follows       Follow[]
+  watches       Watch[]
+  notifications Notification[]
+  callouts      Callout[]
+}
+
+model Follow {
+  userWallet String
+  kolId      String
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userWallet], references: [wallet])
+  kol  Kol  @relation(fields: [kolId], references: [id])
+
+  @@id([userWallet, kolId])
+  @@index([kolId])
+}
+
+model Watch {
+  userWallet String
+  marketId   String
+  createdAt  DateTime @default(now())
+
+  user   User   @relation(fields: [userWallet], references: [wallet])
+  market Market @relation(fields: [marketId], references: [id])
+
+  @@id([userWallet, marketId])
+  @@index([marketId])
+}
+
+model Notification {
+  id         String           @id @default(cuid())
+  userWallet String
+  type       NotificationType
+  /// market id or submission id
+  refId      String
+  title      String
+  body       String
+  href       String
+  readAt     DateTime?
+  createdAt  DateTime         @default(now())
+
+  user User @relation(fields: [userWallet], references: [wallet])
+
+  /// fan-out is idempotent: one notification per (user, type, ref)
+  @@unique([userWallet, type, refId])
+  @@index([userWallet, createdAt])
+}
+
+model Callout {
+  id         String   @id @default(cuid())
+  userWallet String
+  marketId   String
+  side       Outcome
+  text       String
+  parentId   String?
+  likeCount  Int      @default(0)
+  hidden     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  user    User           @relation(fields: [userWallet], references: [wallet])
+  market  Market         @relation(fields: [marketId], references: [id])
+  parent  Callout?       @relation("Replies", fields: [parentId], references: [id])
+  replies Callout[]      @relation("Replies")
+  likes   CalloutLike[]
+  reports CalloutReport[]
+
+  @@index([marketId, createdAt])
+  @@index([createdAt])
+}
+
+model CalloutLike {
+  calloutId String
+  wallet    String
+  createdAt DateTime @default(now())
+
+  callout Callout @relation(fields: [calloutId], references: [id])
+
+  @@id([calloutId, wallet])
+}
+
+model CalloutReport {
+  id        String   @id @default(cuid())
+  calloutId String
+  wallet    String
+  reason    String
+  createdAt DateTime @default(now())
+
+  callout Callout @relation(fields: [calloutId], references: [id])
+
+  @@unique([calloutId, wallet])
+}
+
+model MarketFlag {
+  id        String   @id @default(cuid())
+  marketId  String
+  wallet    String
+  reason    String
+  createdAt DateTime @default(now())
+
+  market Market @relation(fields: [marketId], references: [id])
+
+  @@unique([marketId, wallet])
+}
+
+// ---------------------------------------------------------------- stats
+
+model KolStats {
+  kolId     String   @id
+  live      Int      @default(0)
+  resolved  Int      @default(0)
+  correct   Int      @default(0)
+  invalid   Int      @default(0)
+  hitRate   Float?
+  avgEdge   Float?
+  edgeN     Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  kol Kol @relation(fields: [kolId], references: [id])
+}
+
+// ---------------------------------------------------------------- ops
+
+model IngestRun {
+  id            String       @id @default(cuid())
+  jobType       String // "timeline" | "post" | "reconcile" | "canary" | "profile"
+  kolId         String?
+  startedAt     DateTime     @default(now())
+  finishedAt    DateTime?
+  status        IngestStatus @default(RUNNING)
+  postsReturned Int          @default(0)
+  error         String?
+
+  kol Kol? @relation(fields: [kolId], references: [id])
+
+  @@index([jobType, startedAt])
+}
+
+/// Raw decoded contract events, the indexer's source of truth. Every projection (market state,
+/// trades, positions, prices, resolutions) can be rebuilt by replaying these in order.
+model ChainEvent {
+  id          BigInt   @id @default(autoincrement())
+  chainId     Int
+  blockNumber BigInt
+  blockHash   String
+  blockTime   DateTime
+  txHash      String
+  logIndex    Int
+  address     String
+  name        String
+  /// onchain market id the event belongs to, when it has one
+  marketId    BigInt?
+  args        Json
+
+  @@unique([txHash, logIndex])
+  @@index([chainId, blockNumber])
+  @@index([marketId, blockNumber, logIndex])
+}
+
+model IndexerCursor {
+  /// "<chainId>:<name>"
+  id          String   @id
+  blockNumber BigInt
+  blockHash   String
+  updatedAt   DateTime @updatedAt
+}
+
+/// Recent block hashes, used to detect reorgs.
+model IndexedBlock {
+  chainId     Int
+  blockNumber BigInt
+  blockHash   String
+
+  @@id([chainId, blockNumber])
+}
+
+model SystemAlert {
+  id         String    @id @default(cuid())
+  kind       String
+  message    String
+  data       Json?
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
+
+  @@index([resolvedAt, createdAt])
+}
+
+model TakedownRequest {
+  id          String         @id @default(cuid())
+  kolHandle   String
+  name        String
+  contact     String
+  urls        String
+  reason      String
+  status      TakedownStatus @default(OPEN)
+  handledBy   String?
+  handledAt   DateTime?
+  createdAt   DateTime       @default(now())
+}
+
+model AdminAudit {
+  id          String   @id @default(cuid())
+  adminWallet String
+  action      String
+  target      String?
+  data        Json?
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+model FaucetClaim {
+  id        String   @id @default(cuid())
+  wallet    String
+  ipHash    String
+  amount    Decimal  @db.Decimal(78, 0)
+  nonce     Int
+  deadline  DateTime
+  createdAt DateTime @default(now())
+
+  @@index([wallet, createdAt])
+  @@index([ipHash, createdAt])
+}
