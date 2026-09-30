@@ -1,0 +1,5 @@
+{
+  "filter_paths": "node_modules|test|script",
+  "exclude_informational": true,
+  "exclude_low": false
+}
