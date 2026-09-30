@@ -1,0 +1,22 @@
+# Fly.io: exactly one machine, because twscrape keeps sessions in SQLite (plan B4).
+app = "stampd-scraper"
+primary_region = "sin"
+
+[build]
+
+[env]
+  SCRAPER_ENABLED = "true"
+
+[[mounts]]
+  source = "scraper_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = "off"
+  min_machines_running = 1
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
