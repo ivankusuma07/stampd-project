@@ -13,7 +13,7 @@ export interface Kv {
 }
 
 export function createKv(redisUrl?: string): Kv {
-  return redisUrl ? new RedisKv(new Redis(redisUrl, { lazyConnect: false })) : new MemoryKv();
+  return redisUrl ? new RedisKv(new Redis(redisUrl, { lazyConnect: false, family: 0 })) : new MemoryKv();
 }
 
 class RedisKv implements Kv {

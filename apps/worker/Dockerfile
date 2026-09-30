@@ -1,0 +1,12 @@
+# @stampd/worker on Railway. Build context: the repo root (see apps/worker/railway.json).
+FROM node:22-bookworm-slim
+# openssl: Prisma's migrate engine. corepack: the pnpm version pinned in package.json.
+RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates && rm -rf /var/lib/apt/lists/* && corepack enable
+ENV CI=true
+WORKDIR /repo
+COPY . .
+# Installs worker and the workspace packages it uses; postinstall runs prisma generate.
+RUN pnpm install --frozen-lockfile --filter "@stampd/worker..."
+RUN pnpm --filter @stampd/worker build
+ENV NODE_ENV=production
+CMD ["node", "apps/worker/dist/index.js"]

@@ -1,7 +1,7 @@
 node_modules/
 .turbo/
 dist/
-.next/
+.next*/
 out/
 coverage/
 *.tsbuildinfo
@@ -14,6 +14,7 @@ coverage/
 packages/contracts/out/
 packages/contracts/cache/
 packages/contracts/broadcast/*/31337/
+packages/contracts/broadcast/**/dry-run/
 packages/contracts/lib/
 
 # Python

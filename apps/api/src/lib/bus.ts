@@ -18,7 +18,7 @@ export function createBus(redisUrl?: string): NotificationBus {
   emitter.setMaxListeners(0);
   let sub: Redis | undefined;
   if (redisUrl) {
-    sub = new Redis(redisUrl);
+    sub = new Redis(redisUrl, { family: 0 }); // family 0: IPv4 or IPv6 (Railway private network)
     void sub.psubscribe("notify:*");
     sub.on("pmessage", (_pattern, channel: string, message: string) => {
       emitter.emit(channel.toLowerCase(), message);

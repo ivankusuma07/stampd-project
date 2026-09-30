@@ -40,10 +40,13 @@ export const notificationChannel = (wallet: string) => `notify:${wallet.toLowerC
 
 let connection: Redis | undefined;
 
-/** BullMQ needs `maxRetriesPerRequest: null` on its connection. */
+/**
+ * BullMQ needs `maxRetriesPerRequest: null` on its connection. `family: 0` resolves IPv4 or IPv6,
+ * since Railway's private network (`*.railway.internal`) can be IPv6-only.
+ */
 export function redisConnection(url = process.env.REDIS_URL): Redis {
   if (!url) throw new Error("REDIS_URL is not set");
-  connection ??= new Redis(url, { maxRetriesPerRequest: null, enableReadyCheck: false });
+  connection ??= new Redis(url, { maxRetriesPerRequest: null, enableReadyCheck: false, family: 0 });
   return connection;
 }
 

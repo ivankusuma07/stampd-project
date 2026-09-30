@@ -87,6 +87,11 @@ def create_app(backend: Backend, token: str | None = None, enabled: bool = True)
             raise HTTPException(404, "not found")
         return u.__dict__
 
+    @app.get("/livez")
+    async def livez():
+        """Unauthenticated liveness for the platform health check; says nothing about the accounts."""
+        return {"ok": True}
+
     @app.get("/health", dependencies=[Depends(auth)])
     async def health():
         started = time.monotonic()

@@ -27,6 +27,8 @@ const csp = [
 ].join("; ");
 
 const config: NextConfig = {
+  // Opt-in second build directory, so a review build can run beside one that is already serving.
+  ...(process.env.NEXT_DIST_DIR ? { distDir: process.env.NEXT_DIST_DIR } : {}),
   transpilePackages: ["@stampd/ui", "@stampd/core", "@stampd/chain"],
   // RainbowKit → wagmi Base Account connector → Coinbase CDP SDK, whose Node build lazily imports
   // optional x402/Solana packages. Load those at runtime on the server instead of bundling them.

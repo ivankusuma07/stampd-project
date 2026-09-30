@@ -5,7 +5,8 @@ const hex32 = z.string().regex(/^0x[0-9a-fA-F]{64}$/, "expected a 32-byte hex pr
 const Env = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().default(4000),
-  HOST: z.string().default("0.0.0.0"),
+  /** "::" listens on IPv6 and IPv4 (Railway's private network is IPv6) */
+  HOST: z.string().default("::"),
   DATABASE_URL: z.string().min(1),
   REDIS_URL: z.string().optional(),
   CHAIN_ID: z.coerce.number().default(46630),

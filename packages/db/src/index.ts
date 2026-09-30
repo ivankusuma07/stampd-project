@@ -11,7 +11,7 @@ export function getDb(): PrismaClient {
   if (!globalForPrisma.__stampdPrisma) {
     const connectionString = process.env.DATABASE_URL;
     if (!connectionString) throw new Error("DATABASE_URL is not set");
-    // DATABASE_POOL_MAX: tune for the Supabase pooler; 1 for the single-connection local PGlite.
+    // DATABASE_POOL_MAX: pool size per process (10 on Railway); 1 for the single-connection local PGlite.
     const max = process.env.DATABASE_POOL_MAX ? Number(process.env.DATABASE_POOL_MAX) : undefined;
     globalForPrisma.__stampdPrisma = new PrismaClient({ adapter: new PrismaPg({ connectionString, max }) });
   }
