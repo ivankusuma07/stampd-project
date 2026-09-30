@@ -49,7 +49,7 @@ export default function StyleguidePage() {
   return (
     <div className="space-y-12">
       <header>
-        <h1 className="font-serif text-3xl font-semibold">Styleguide</h1>
+        <h1 className="font-display text-3xl font-bold tracking-tight">Styleguide</h1>
         <p className="mt-1 text-ink-2">
           <span className="mark">Sample values only</span> — nothing on this page is live data. Switch themes in the header;
           set your OS to reduce motion to check the still versions.
@@ -61,7 +61,7 @@ export default function StyleguidePage() {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
           {TOKENS.map((t) => (
             <div key={t} className="text-xs">
-              <div className="h-14 rounded-[4px] border border-rule" style={{ background: `var(--${t})` }} />
+              <div className="h-14 rounded-xl border border-rule" style={{ background: `var(--${t})` }} />
               <p className="mt-1 font-mono">--{t}</p>
             </div>
           ))}
@@ -79,8 +79,8 @@ export default function StyleguidePage() {
               <span className="font-serif">Will BTC close above $90,000?</span>
             </p>
           ))}
-          <p className="font-sans">IBM Plex Sans — labels, buttons, UI text.</p>
-          <p className="font-mono">IBM Plex Mono — 56¢ · $1,234.57 · 0x4b1e…9a0c · 72,104,388</p>
+          <p className="font-sans">Manrope — labels, buttons, UI text and market questions.</p>
+          <p className="font-mono">JetBrains Mono — 56¢ · $1,234.57 · 0x4b1e…9a0c · 72,104,388</p>
         </div>
       </section>
 

@@ -1,18 +1,38 @@
 import type { Metadata } from "next";
-import { EmptyState, SectionHeading } from "@stampd/ui";
-import { formatInt } from "@stampd/core";
+import { CountUp, EmptyState, SectionHeading, SpotlightCard } from "@stampd/ui";
 import { serverGet } from "@/lib/api";
 import type { Insights } from "@/lib/types";
+import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = { title: "Insights & methodology" };
 export const revalidate = 60;
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="border-t border-ink pt-2">
-      <dt className="text-xs tracking-[0.08em] text-ink-3 uppercase">{label}</dt>
-      <dd className="mt-1 font-mono text-3xl">{value}</dd>
-    </div>
+    <SpotlightCard className="px-5 py-4">
+      <dt className="text-[10px] tracking-[0.2em] text-ink-3 uppercase">{label}</dt>
+      <dd className="mt-1 font-display text-4xl font-extrabold text-ink">
+        <CountUp to={value} duration={1.4} separator="," />
+      </dd>
+    </SpotlightCard>
+  );
+}
+
+/** One labelled horizontal bar; width is share of the largest value. */
+function Bar({ label, value, max, sub, color }: { label: string; value: number; max: number; sub?: string; color: string }) {
+  return (
+    <li>
+      <div className="flex items-baseline justify-between gap-3 text-sm">
+        <span className="font-medium text-ink capitalize">{label}</span>
+        <span className="font-mono text-ink-2">
+          {value}
+          {sub ? <span className="ml-2 text-ink-3">{sub}</span> : null}
+        </span>
+      </div>
+      <div className="mt-1.5 h-2.5 overflow-hidden rounded-full bg-surface-2">
+        <div className={`h-full rounded-full ${color}`} style={{ width: `${max ? Math.max(2, (value / max) * 100) : 0}%` }} />
+      </div>
+    </li>
   );
 }
 
@@ -23,53 +43,57 @@ export default async function InsightsPage() {
 
   return (
     <div className="space-y-12">
-      <h1 className="font-serif text-3xl font-semibold">Insights</h1>
+      <PageHeader eyebrow="By the numbers" title="Insights" tone="cyan">
+        How the markets have played out so far, and how well the crowd&apos;s odds matched reality.
+      </PageHeader>
 
       {!d ? (
         <EmptyState title="Numbers are unavailable right now" />
       ) : (
         <>
-          <dl className="grid grid-cols-2 gap-6 md:grid-cols-4">
-            <Stat label="Markets" value={formatInt(d.markets)} />
-            <Stat label="Resolved" value={formatInt(d.resolved)} />
-            <Stat label="Trades" value={formatInt(d.trades)} />
-            <Stat label="Traders" value={formatInt(d.traders)} />
+          <dl className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            <Stat label="Markets" value={d.markets} />
+            <Stat label="Resolved" value={d.resolved} />
+            <Stat label="Trades" value={d.trades} />
+            <Stat label="Traders" value={d.traders} />
           </dl>
 
           <section>
-            <SectionHeading>Results</SectionHeading>
+            <SectionHeading eyebrow="Settled markets">Results</SectionHeading>
             {d.resolved === 0 ? (
               <p className="text-ink-2">No market has resolved yet.</p>
             ) : (
-              <table className="w-full max-w-md font-mono text-sm">
-                <tbody>
-                  {(["YES", "NO", "INVALID"] as const).map((r) => (
-                    <tr key={r} className="border-b border-rule">
-                      <th className="py-2 text-left font-normal">{r}</th>
-                      <td className="py-2 text-right">{d.results[r]}</td>
-                      <td className="py-2 text-right text-ink-3">{pct(d.results[r], d.resolved)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <ul className="max-w-xl space-y-4 rounded-2xl border border-rule bg-surface/70 p-5 backdrop-blur">
+                {(["YES", "NO", "INVALID"] as const).map((r) => (
+                  <Bar
+                    key={r}
+                    label={r}
+                    value={d.results[r]}
+                    max={d.resolved}
+                    sub={pct(d.results[r], d.resolved)}
+                    color={r === "YES" ? "bg-yes" : r === "NO" ? "bg-no" : "bg-ink-3"}
+                  />
+                ))}
+              </ul>
             )}
           </section>
 
           <section>
-            <SectionHeading>Markets by category</SectionHeading>
+            <SectionHeading eyebrow="What people call">Markets by category</SectionHeading>
             {d.byCategory.length === 0 ? (
               <p className="text-ink-2">No markets yet.</p>
             ) : (
-              <table className="w-full max-w-md font-mono text-sm">
-                <tbody>
-                  {d.byCategory.map((c) => (
-                    <tr key={c.category} className="border-b border-rule">
-                      <th className="py-2 text-left font-normal capitalize">{c.category}</th>
-                      <td className="py-2 text-right">{c.markets}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <ul className="max-w-xl space-y-4 rounded-2xl border border-rule bg-surface/70 p-5 backdrop-blur">
+                {d.byCategory.map((c) => (
+                  <Bar
+                    key={c.category}
+                    label={c.category}
+                    value={c.markets}
+                    max={Math.max(...d.byCategory.map((x) => x.markets))}
+                    color="bg-gradient-to-r from-brand-2 via-brand-3 to-brand"
+                  />
+                ))}
+              </ul>
             )}
             <p className="mt-2 text-sm text-ink-3">{d.trackedKols} KOLs tracked.</p>
           </section>

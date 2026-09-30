@@ -6,8 +6,8 @@ export const metadata: Metadata = { title: "Terms" };
 export default function TermsPage() {
   return (
     <article className="max-w-prose space-y-4">
-      <h1 className="font-serif text-3xl font-semibold">Terms of use</h1>
-      <p className="rounded-[4px] border border-dashed border-rule-strong p-3 text-sm text-ink-2">
+      <h1 className="font-display text-3xl font-bold tracking-tight">Terms of use</h1>
+      <p className="rounded-xl border border-dashed border-rule-strong p-3 text-sm text-ink-2">
         Draft pending legal review. The final terms will be published here before public launch.
       </p>
       <h2 className="font-serif text-xl font-semibold">What STAMPD is</h2>

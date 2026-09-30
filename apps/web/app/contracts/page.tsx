@@ -6,6 +6,7 @@ import { explorerAddressUrl } from "@stampd/chain";
 import { formatInt } from "@stampd/core";
 import { EmptyState } from "@stampd/ui";
 import { chain, deployment } from "@/lib/chain";
+import { PageHeader } from "@/components/page-header";
 
 const ROLES: Record<string, string> = {
   DemoUSD: "Demo collateral (6 decimals). Faucet claims need a signed voucher; transfers only to STAMPD contracts.",
@@ -38,19 +39,18 @@ export default function ContractsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="font-serif text-3xl font-semibold">Contracts</h1>
-      <p className="max-w-prose text-ink-2">
+      <PageHeader eyebrow="Onchain" title="Contracts" tone="cyan">
         STAMPD runs on {chain.name} (chain id {chain.id}). These are the only official addresses. The check column asks the
         chain from your browser whether contract code exists at each address.
-      </p>
+      </PageHeader>
       {!deployment ? (
         <EmptyState title={`Not deployed on ${chain.name} yet`} />
       ) : (
         <>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto rounded-2xl border border-rule bg-surface/70 px-5 py-2 backdrop-blur">
             <table className="w-full min-w-[720px] text-sm">
               <thead>
-                <tr className="border-b border-ink text-left text-xs tracking-[0.08em] text-ink-3 uppercase">
+                <tr className="border-b border-rule text-left text-[10px] tracking-[0.2em] text-ink-3 uppercase">
                   <th className="py-2 font-medium">Contract</th>
                   <th className="py-2 font-medium">Address</th>
                   <th className="py-2 text-right font-medium">Bytecode check</th>

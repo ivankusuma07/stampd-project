@@ -12,11 +12,16 @@ for (const [name, width, height] of [
     test(`screens ${name} ${theme}`, async ({ browser }) => {
       const { markets } = (await (await fetch(`${API}/markets`)).json()) as { markets: { id: string }[] };
       const ctx = await browser.newContext({ viewport: { width, height }, colorScheme: theme });
+      // Dark is the default look; light is an explicit choice saved by the header toggle.
+      if (theme === "light") await ctx.addInitScript(() => localStorage.setItem("theme", "light"));
       const page = await ctx.newPage();
       for (const [slug, path] of [
         ["home", "/"],
         ["market", `/markets/${markets[0]!.id}`],
+        ["markets", "/markets"],
         ["kol", "/kol/example_kol"],
+        ["kols", "/kols"],
+        ["insights", "/insights"],
         ["styleguide", "/styleguide"],
       ] as const) {
         await page.goto(path);

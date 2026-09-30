@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Tabs, tabClass } from "@stampd/ui";
 import { CalloutFeed } from "@/components/callouts";
+import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = { title: "Callouts" };
 
@@ -11,9 +12,10 @@ export default async function CalloutsPage({ searchParams }: { searchParams: Sea
   const { sort } = await searchParams;
   const s = sort === "trending" ? "trending" : "latest";
   return (
-    <div className="max-w-3xl space-y-4">
-      <h1 className="font-serif text-3xl font-semibold">Callouts</h1>
-      <p className="text-ink-2">Community takes on live calls. Every callout links to a market; post one from the market page.</p>
+    <div className="max-w-3xl space-y-6">
+      <PageHeader eyebrow="Community" title="Callouts" tone="violet">
+        Community takes on live calls. Every callout links to a market; post one from the market page.
+      </PageHeader>
       <Tabs label="Sort callouts">
         <Link href="/callouts" className={tabClass(s === "latest")}>
           Latest

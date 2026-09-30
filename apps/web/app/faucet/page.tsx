@@ -11,6 +11,7 @@ import { api, ApiError } from "@/lib/api";
 import { CHAIN_ID, chain, deployment } from "@/lib/chain";
 import { SignInGate } from "@/components/sign-in-gate";
 import { useToasts } from "@/components/toasts";
+import { PageHeader } from "@/components/page-header";
 
 declare global {
   interface Window {
@@ -83,11 +84,11 @@ function Claim() {
     <div className="max-w-md space-y-5">
       {SITE_KEY ? <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js" strategy="afterInteractive" onLoad={renderWidget} /> : null}
       <dl className="grid grid-cols-2 gap-4 font-mono">
-        <div className="border-t border-ink pt-2">
+        <div className="border-t border-rule-strong pt-2">
           <dt className="text-xs text-ink-3 uppercase">Your balance</dt>
           <dd className="text-2xl">{formatUsd(balance.data ?? 0n)}</dd>
         </div>
-        <div className="border-t border-ink pt-2">
+        <div className="border-t border-rule-strong pt-2">
           <dt className="text-xs text-ink-3 uppercase">Per claim, max</dt>
           <dd className="text-2xl">{max.data !== undefined ? formatUsd(max.data, { decimals: 0 }) : "—"}</dd>
         </div>
@@ -95,7 +96,7 @@ function Claim() {
       {chainId !== CHAIN_ID ? (
         <Button onClick={() => switchChain({ chainId: CHAIN_ID })}>Switch to {chain.name}</Button>
       ) : waiting ? (
-        <p className="rounded-[4px] border border-rule p-3 text-sm">Next claim available {formatDateTimeUtc(availableAt!)}.</p>
+        <p className="rounded-xl border border-rule p-3 text-sm">Next claim available {formatDateTimeUtc(availableAt!)}.</p>
       ) : (
         <>
           {SITE_KEY ? <div ref={widget} /> : <p className="text-xs text-ink-3">Development mode: captcha is skipped.</p>}
@@ -116,7 +117,9 @@ function Claim() {
 export default function FaucetPage() {
   return (
     <div className="space-y-6">
-      <h1 className="font-serif text-3xl font-semibold">Faucet</h1>
+      <PageHeader eyebrow="Demo USD" title={<>Faucet <span className="text-gradient">drip</span></>} tone="cyan">
+        Free play money for trading on testnet. It has no value and can&apos;t leave STAMPD.
+      </PageHeader>
       <SignInGate why="Claims are tied to your wallet, once per 24 hours.">
         <Claim />
       </SignInGate>

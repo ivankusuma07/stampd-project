@@ -5,8 +5,8 @@ export const metadata: Metadata = { title: "Privacy" };
 export default function PrivacyPage() {
   return (
     <article className="max-w-prose space-y-4">
-      <h1 className="font-serif text-3xl font-semibold">Privacy</h1>
-      <p className="rounded-[4px] border border-dashed border-rule-strong p-3 text-sm text-ink-2">
+      <h1 className="font-display text-3xl font-bold tracking-tight">Privacy</h1>
+      <p className="rounded-xl border border-dashed border-rule-strong p-3 text-sm text-ink-2">
         Draft pending legal review. The final policy will be published here before public launch.
       </p>
       <h2 className="font-serif text-xl font-semibold">What we store</h2>

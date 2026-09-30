@@ -90,14 +90,14 @@ function Draft({ item, onDone }: { item: QueueItem; onDone: () => void }) {
   };
 
   return (
-    <article className="rounded-[6px] border border-rule bg-surface p-4">
+    <article className="rounded-2xl border border-rule bg-surface p-4">
       <div className="flex flex-wrap items-center gap-2 text-xs text-ink-3">
         <span>@{item.post.authorHandle}</span>·<span>{item.source === "WEB" ? `submitted by ${shortAddress(item.submittedBy ?? "")}` : "timeline"}</span>·
         <span>{timeAgo(item.createdAt)} ago</span>·<span>AI would: {item.aiDecision ?? "—"}</span>
         {item.template ? <span>· template {item.template}</span> : null}
         {item.post.kolExcluded ? <span className="text-no">· KOL EXCLUDED</span> : null}
       </div>
-      <blockquote className="mt-2 border-l-2 border-ink pl-3 font-serif text-lg">{item.post.text}</blockquote>
+      <blockquote className="mt-2 border-l-2 border-brand pl-3 font-serif text-lg">{item.post.text}</blockquote>
       <a href={item.post.url} target="_blank" rel="noreferrer" className="text-xs underline">
         Post on X
       </a>
@@ -122,7 +122,7 @@ function Draft({ item, onDone }: { item: QueueItem; onDone: () => void }) {
                 rows={3}
                 defaultValue={String(x[k] ?? "")}
                 onChange={(e) => setEdits({ ...edits, [k]: e.target.value })}
-                className="w-full rounded-[4px] border border-rule-strong bg-surface p-2 text-sm text-ink"
+                className="w-full rounded-xl border border-rule-strong bg-surface p-2 text-sm text-ink"
               />
             ) : (
               <Input defaultValue={String(x[k] ?? "")} onChange={(e) => setEdits({ ...edits, [k]: e.target.value })} />
@@ -133,8 +133,8 @@ function Draft({ item, onDone }: { item: QueueItem; onDone: () => void }) {
       <details className="mt-3 text-sm">
         <summary className="cursor-pointer text-ink-2">AI outputs (extract · check)</summary>
         <div className="mt-2 grid gap-2 md:grid-cols-2">
-          <pre className="overflow-auto rounded-[4px] bg-paper p-2 font-mono text-xs">{JSON.stringify(item.extracted, null, 2)}</pre>
-          <pre className="overflow-auto rounded-[4px] bg-paper p-2 font-mono text-xs">{JSON.stringify(item.check, null, 2)}</pre>
+          <pre className="overflow-auto rounded-xl bg-paper p-2 font-mono text-xs">{JSON.stringify(item.extracted, null, 2)}</pre>
+          <pre className="overflow-auto rounded-xl bg-paper p-2 font-mono text-xs">{JSON.stringify(item.check, null, 2)}</pre>
         </div>
       </details>
 
@@ -207,7 +207,7 @@ function Resolutions() {
   return (
     <ul className="space-y-4">
       {data.markets.map((m) => (
-        <li key={m.id} className="rounded-[6px] border border-rule bg-surface p-4">
+        <li key={m.id} className="rounded-2xl border border-rule bg-surface p-4">
           <Link href={`/markets/${m.id}`} className="font-serif text-lg">
             {m.question}
           </Link>
@@ -357,7 +357,7 @@ function Takedowns() {
   return (
     <ul className="space-y-3">
       {data.takedowns.map((t) => (
-        <li key={t.id} className="rounded-[6px] border border-rule bg-surface p-4 text-sm">
+        <li key={t.id} className="rounded-2xl border border-rule bg-surface p-4 text-sm">
           <p>
             <strong>@{t.kolHandle}</strong> · {t.name} · {t.contact} · {t.status}
           </p>
@@ -413,7 +413,7 @@ function Health() {
           <dd>{data.indexer.block ?? "—"}</dd>
         </div>
       </dl>
-      <pre className="overflow-auto rounded-[4px] bg-surface p-3 font-mono text-xs">{JSON.stringify(data.scraper, null, 2)}</pre>
+      <pre className="overflow-auto rounded-xl bg-surface p-3 font-mono text-xs">{JSON.stringify(data.scraper, null, 2)}</pre>
       <SectionHeading>Recent ingest runs</SectionHeading>
       <table className="w-full font-mono text-xs">
         <tbody>
@@ -469,7 +469,7 @@ function Templates() {
   return (
     <table className="w-full text-sm">
       <thead>
-        <tr className="border-b border-ink text-left text-xs text-ink-3 uppercase">
+        <tr className="border-b border-rule-strong text-left text-xs text-ink-3 uppercase">
           <th className="py-2 font-medium">Template</th>
           <th className="py-2 text-right font-medium">Agreement</th>
           <th className="py-2 text-right font-medium">Auto-publish</th>
@@ -547,7 +547,7 @@ function Console() {
 export default function AdminPage() {
   return (
     <div className="space-y-6">
-      <h1 className="font-serif text-3xl font-semibold">Admin</h1>
+      <h1 className="font-display text-3xl font-bold tracking-tight">Admin</h1>
       <SignInGate why="The admin console is restricted to allowlisted wallets.">
         <Console />
       </SignInGate>

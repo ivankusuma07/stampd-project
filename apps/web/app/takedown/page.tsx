@@ -14,7 +14,7 @@ export default function TakedownPage() {
   if (state === "sent") {
     return (
       <div className="max-w-xl space-y-2">
-        <h1 className="font-serif text-3xl font-semibold">Request received</h1>
+        <h1 className="font-display text-3xl font-bold tracking-tight">Request received</h1>
         <p className="text-ink-2">A person reads every request. If we exclude the account, no new markets are made from its posts.</p>
       </div>
     );
@@ -23,7 +23,7 @@ export default function TakedownPage() {
   return (
     <div className="max-w-xl space-y-6">
       <div>
-        <h1 className="font-serif text-3xl font-semibold">Request a review or removal</h1>
+        <h1 className="font-display text-3xl font-bold tracking-tight">Request a review or removal</h1>
         <p className="mt-1 text-ink-2">
           If markets here are made from your posts and you&apos;d like them reviewed, or you don&apos;t want to be listed, tell us.
           Markets that are already trading can be settled as VOID (every share pays 0.50) rather than deleted, so nobody is
@@ -72,7 +72,7 @@ export default function TakedownPage() {
             rows={5}
             value={form.reason}
             onChange={set("reason")}
-            className="w-full rounded-[4px] border border-rule-strong bg-surface p-3 text-sm"
+            className="w-full rounded-xl border border-rule-strong bg-surface p-3 text-sm"
           />
         </div>
         {error ? <p className="text-sm text-no">{error}</p> : null}

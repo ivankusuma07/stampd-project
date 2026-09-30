@@ -9,6 +9,7 @@ import { api, ApiError } from "@/lib/api";
 import type { Submission } from "@/lib/types";
 import { RelativeTime } from "@/components/relative-time";
 import { SignInGate } from "@/components/sign-in-gate";
+import { PageHeader } from "@/components/page-header";
 
 /** Submission status → StatusMark state + label, always with text (development plan 4.7). */
 const STATUS: Record<Submission["status"], { mark: "pending" | "done" | "failed"; label: string }> = {
@@ -127,13 +128,10 @@ function SubmitForm() {
 export default function SubmitPage() {
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-serif text-3xl font-semibold">Submit a call</h1>
-        <p className="mt-1 max-w-prose text-ink-2">
-          Paste a post where someone makes a checkable prediction. An AI drafts the market and a moderator reviews it before
-          it goes live.
-        </p>
-      </div>
+      <PageHeader eyebrow="Put it on the record" title={<>Submit a <span className="text-gradient">call</span></>} tone="violet">
+        Paste a post where someone makes a checkable prediction. An AI drafts the market and a moderator reviews it before it
+        goes live.
+      </PageHeader>
       <SignInGate why="Submissions are credited to your wallet.">
         <SubmitForm />
       </SignInGate>

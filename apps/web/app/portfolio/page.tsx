@@ -13,6 +13,7 @@ import type { PortfolioPosition } from "@/lib/types";
 import { STATUS_LABEL } from "@/lib/format";
 import { SignInGate } from "@/components/sign-in-gate";
 import { useToasts } from "@/components/toasts";
+import { PageHeader } from "@/components/page-header";
 
 function Positions() {
   const qc = useQueryClient();
@@ -63,11 +64,11 @@ function Positions() {
   return (
     <div className="space-y-10">
       <dl className="grid grid-cols-2 gap-6 md:grid-cols-3">
-        <div className="border-t border-ink pt-2">
+        <div className="border-t border-rule-strong pt-2">
           <dt className="text-xs tracking-[0.08em] text-ink-3 uppercase">Open positions value</dt>
           <dd className="mt-1 font-mono text-2xl">{formatUsd(totalValue)}</dd>
         </div>
-        <div className="border-t border-ink pt-2">
+        <div className="border-t border-rule-strong pt-2">
           <dt className="text-xs tracking-[0.08em] text-ink-3 uppercase">Ready to redeem</dt>
           <dd className="mt-1 font-mono text-2xl">{totalRedeemable > 0n ? <span className="mark">{formatUsd(totalRedeemable)}</span> : formatUsd(0n)}</dd>
         </div>
@@ -106,10 +107,10 @@ function Positions() {
 
 function PositionTable({ rows, settled }: { rows: PortfolioPosition[]; settled?: boolean }) {
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto rounded-2xl border border-rule bg-surface/70 px-5 py-2 backdrop-blur">
       <table className="w-full min-w-[640px] text-sm">
         <thead>
-          <tr className="border-b border-ink text-left text-xs tracking-[0.08em] text-ink-3 uppercase">
+          <tr className="border-b border-rule text-left text-[10px] tracking-[0.2em] text-ink-3 uppercase">
             <th className="py-2 font-medium">Market</th>
             <th className="py-2 text-right font-medium">Shares</th>
             <th className="py-2 text-right font-medium">Cost</th>
@@ -152,7 +153,9 @@ function PositionTable({ rows, settled }: { rows: PortfolioPosition[]; settled?:
 export default function PortfolioPage() {
   return (
     <div className="space-y-6">
-      <h1 className="font-serif text-3xl font-semibold">Portfolio</h1>
+      <PageHeader eyebrow="Your positions" title="Portfolio">
+        Every share you hold, what it&apos;s worth now, and anything ready to redeem.
+      </PageHeader>
       <SignInGate why="Your positions are tied to your wallet.">
         <Positions />
       </SignInGate>

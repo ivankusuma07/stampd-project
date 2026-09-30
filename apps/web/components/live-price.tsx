@@ -21,7 +21,7 @@ export function LivePrice({ bps, side = "YES", height = 18 }: { bps: number; sid
   }, [cents]);
 
   return (
-    <span className={`inline-flex rounded-[2px] font-mono ${flash}`}>
+    <span className={`inline-flex rounded-md font-mono ${flash}`}>
       <Counter value={cents} height={height} suffix="¢" />
     </span>
   );

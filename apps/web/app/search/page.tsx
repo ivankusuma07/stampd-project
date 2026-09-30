@@ -24,9 +24,9 @@ export default async function SearchPage({ searchParams }: { searchParams: Searc
           name="q"
           defaultValue={term}
           placeholder="Search markets and KOLs"
-          className="h-10 flex-1 rounded-[4px] border border-rule-strong bg-surface px-3"
+          className="h-10 flex-1 rounded-xl border border-rule-strong bg-surface px-3"
         />
-        <button className="h-10 rounded-[4px] bg-ink px-4 text-sm font-medium text-paper">Search</button>
+        <button className="h-10 rounded-xl bg-brand px-5 text-sm font-semibold text-brand-ink hover:brightness-110">Search</button>
       </form>
       {!term ? null : !data || (data.markets.length === 0 && data.kols.length === 0) ? (
         <EmptyState title={`Nothing found for “${term}”`} />

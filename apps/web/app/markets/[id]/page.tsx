@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Avatar, EmptyState, SectionHeading } from "@stampd/ui";
-import { formatCents, formatCountdown, formatDateTimeUtc, formatDateUtc, shortHash } from "@stampd/core";
+import { Avatar, EmptyState, LiveDot, Pill, PriceChip, ProbabilityRing, SectionHeading } from "@stampd/ui";
+import { formatCents, formatDateTimeUtc, formatDateUtc, shortHash } from "@stampd/core";
 import { explorerTxUrl } from "@stampd/chain";
 import { serverGet } from "@/lib/api";
 import type { MarketDetail, Trade } from "@/lib/types";
@@ -11,6 +11,8 @@ import { PriceChart } from "@/components/price-chart";
 import { TradePanel } from "@/components/trade-panel";
 import { Activity, PositionBox, ResolutionPanel, ShareReceipt, WatchFlag } from "@/components/market-side";
 import { MarketCallouts } from "@/components/callouts";
+import { RelativeTime } from "@/components/relative-time";
+import { ArrowUpRight } from "lucide-react";
 
 type Params = Promise<{ id: string }>;
 
@@ -38,34 +40,58 @@ export default async function MarketPage({ params }: { params: Params }) {
     // Phones: question → trade panel → details. Desktop: 8/4 columns with a sticky trade panel.
     <div className="grid gap-8 lg:grid-cols-12">
       <div className="space-y-8 lg:col-span-8 lg:row-start-1">
-        <header>
-          <p className="flex flex-wrap items-center gap-2 text-sm text-ink-3">
-            <Avatar src={m.kol.avatarUrl} handle={m.kol.handle} size={24} />
-            <Link href={`/kol/${m.kol.handle}`} className="text-ink">
-              @{m.kol.handle}
+        <header className="relative overflow-hidden rounded-3xl border border-rule bg-surface/80 p-6 backdrop-blur md:p-8">
+          <div aria-hidden className="pointer-events-none absolute -top-32 -right-20 h-72 w-72 rounded-full bg-brand/15 blur-3xl" />
+          <div aria-hidden className="pointer-events-none absolute -bottom-32 -left-16 h-64 w-64 rounded-full bg-brand-2/15 blur-3xl" />
+          <div className="relative flex flex-wrap items-center gap-2 text-sm">
+            <Link href={`/kol/${m.kol.handle}`} className="inline-flex items-center gap-2 rounded-full border border-rule bg-surface-2/70 py-1 pr-3 pl-1 text-ink hover:border-brand/40">
+              <Avatar src={m.kol.avatarUrl} handle={m.kol.handle} size={24} />@{m.kol.handle}
             </Link>
-            <span aria-hidden>·</span>
-            <span className="capitalize">{m.category}</span>
-            <span aria-hidden>·</span>
-            <span>{m.result ? `Resolved ${m.result}` : STATUS_LABEL[m.status]}</span>
+            <Pill className="capitalize">{m.category}</Pill>
+            <Pill>
+              {m.status === "OPEN" ? <LiveDot /> : null}
+              {m.result ? `Resolved ${m.result}` : STATUS_LABEL[m.status]}
+            </Pill>
             {m.status === "OPEN" ? (
-              <>
-                <span aria-hidden>·</span>
-                <span className="font-mono">closes in {formatCountdown(m.closeTime)}</span>
-              </>
+              <Pill className="font-mono">
+                closes in <RelativeTime iso={m.closeTime} mode="until" />
+              </Pill>
             ) : null}
-          </p>
-          <h1 className="mt-3 font-serif text-3xl leading-[1.15] font-semibold md:text-4xl">{m.question}</h1>
-          <p className="mt-3 font-mono text-sm text-ink-2">
-            {m.kol.handle} called <strong className={m.kolSide === "YES" ? "text-yes" : "text-no"}>{m.kolSide}</strong> ·{" "}
-            {usd(m.volume)} volume · {m.tradeCount} trades
-          </p>
-          {submitter ? <p className="mt-1 text-sm text-ink-3">Submitted by {displayName(submitter)}</p> : null}
+          </div>
+          <div className="relative mt-6 grid gap-6 md:grid-cols-[1fr_auto] md:items-center">
+            <div>
+              <h1 className="font-display text-2xl leading-tight font-bold text-ink md:text-4xl">{m.question}</h1>
+              <p className="mt-4 text-sm text-ink-2">
+                @{m.kol.handle} called{" "}
+                <strong className={`rounded-md px-1.5 py-0.5 font-mono ${m.kolSide === "YES" ? "bg-yes-bg text-yes" : "bg-no-bg text-no"}`}>{m.kolSide}</strong>
+                {submitter ? <span className="text-ink-3"> · submitted by {displayName(submitter)}</span> : null}
+              </p>
+              <dl className="mt-5 grid max-w-md grid-cols-3 gap-3">
+                {[
+                  ["Volume", usd(m.volume, { compact: true })],
+                  ["Trades", String(m.tradeCount)],
+                  ["Opened at", `${Math.round(m.openingYesPriceBps / 100)}¢`],
+                ].map(([k, v]) => (
+                  <div key={k} className="rounded-xl border border-rule bg-surface-2/60 px-3 py-2">
+                    <dt className="text-[10px] tracking-[0.2em] text-ink-3 uppercase">{k}</dt>
+                    <dd className="font-mono text-sm text-ink">{v}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+            <div className="flex items-center gap-5 md:flex-col md:gap-3">
+              <ProbabilityRing yesBps={m.result ? (m.result === "YES" ? 10_000 : m.result === "NO" ? 0 : 5_000) : m.yesPriceBps} />
+              <div className="flex gap-2 md:justify-center">
+                <PriceChip side="YES" bps={m.yesPriceBps} />
+                <PriceChip side="NO" bps={10_000 - m.yesPriceBps} />
+              </div>
+            </div>
+          </div>
         </header>
       </div>
 
       <aside className="lg:col-span-4 lg:col-start-9 lg:row-span-2 lg:row-start-1">
-        <div className="space-y-4 lg:sticky lg:top-4">
+        <div className="space-y-4 lg:sticky lg:top-24">
           {m.status === "RESOLVED" ? null : <TradePanel market={m} />}
           <PositionBox market={m} />
           <ShareReceipt market={m} postedAt={post?.postedAt} />
@@ -77,14 +103,15 @@ export default async function MarketPage({ params }: { params: Params }) {
       <div className="space-y-8 lg:col-span-8 lg:row-start-2">
 
         {post ? (
-          <blockquote className="border-l-2 border-ink pl-4">
-            <p className="font-serif text-xl leading-snug text-ink-2">{post.text}</p>
-            <footer className="mt-2 text-xs text-ink-3">
-              @{post.authorHandle} on X · {formatDateTimeUtc(post.postedAt)} ·{" "}
-              <a href={post.url} target="_blank" rel="noreferrer" className="underline">
-                View post
-              </a>
-            </footer>
+          <blockquote className="rounded-2xl border border-rule bg-surface/70 p-5 backdrop-blur">
+            <div className="mb-2 flex items-center gap-2 text-xs text-ink-3">
+              <Avatar src={m.kol.avatarUrl} handle={post.authorHandle} size={20} />
+              <span className="font-semibold text-ink-2">@{post.authorHandle}</span> on X · {formatDateTimeUtc(post.postedAt)}
+            </div>
+            <p className="text-lg leading-snug text-ink">“{post.text}”</p>
+            <a href={post.url} target="_blank" rel="noreferrer" className="mt-3 inline-flex text-xs text-accent hover:underline items-center gap-1">
+              View the original post <ArrowUpRight size={12} aria-hidden />
+            </a>
           </blockquote>
         ) : (
           <p className="text-sm text-ink-3">
@@ -95,10 +122,12 @@ export default async function MarketPage({ params }: { params: Params }) {
           </p>
         )}
 
-        <PriceChart marketId={m.id} until={m.settledAt ?? m.closeTime} />
+        <div className="rounded-2xl border border-rule bg-surface/70 p-5 backdrop-blur">
+          <PriceChart marketId={m.id} until={m.settledAt ?? m.closeTime} />
+        </div>
 
-        <section>
-          <SectionHeading>Rules</SectionHeading>
+        <section className="rounded-2xl border border-rule bg-surface/70 p-6 backdrop-blur">
+          <SectionHeading eyebrow="Settlement">Rules</SectionHeading>
           <p className="max-w-prose text-ink">{m.rules}</p>
           <dl className="mt-4 grid gap-x-6 gap-y-2 font-mono text-sm sm:grid-cols-2">
             {r ? (
@@ -155,13 +184,13 @@ export default async function MarketPage({ params }: { params: Params }) {
           </section>
         ) : null}
 
-        <section>
-          <SectionHeading>Activity</SectionHeading>
+        <section className="rounded-2xl border border-rule bg-surface/70 p-6 backdrop-blur">
+          <SectionHeading eyebrow="Onchain">Activity</SectionHeading>
           <Activity marketId={m.id} initial={trades?.trades ?? []} />
         </section>
 
-        <section>
-          <SectionHeading>Callouts</SectionHeading>
+        <section className="rounded-2xl border border-rule bg-surface/70 p-6 backdrop-blur">
+          <SectionHeading eyebrow="Community">Callouts</SectionHeading>
           <MarketCallouts marketId={m.id} kolSide={m.kolSide} />
         </section>
       </div>

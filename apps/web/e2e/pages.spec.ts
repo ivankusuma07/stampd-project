@@ -60,7 +60,7 @@ test("reduced motion: prices show immediately as plain text", async ({ browser }
   const ctx = await browser.newContext({ reducedMotion: "reduce" });
   const page = await ctx.newPage();
   await page.goto("/markets");
-  const cell = page.locator("tbody tr").first().locator("td").nth(1);
+  const cell = page.getByTestId("yes-price").first();
   await expect(cell).toContainText(/\d+¢/);
   await ctx.close();
 });

@@ -21,10 +21,11 @@ import {
   type Pool,
   type TradeQuote,
 } from "@stampd/core";
-import { Button, Input } from "@stampd/ui";
+import { Button, ClickSpark, Input } from "@stampd/ui";
 import { CHAIN_ID, chain, deployment } from "@/lib/chain";
 import type { Market } from "@/lib/types";
 import { useToasts } from "./toasts";
+import { ArrowRight } from "lucide-react";
 
 type Mode = "buy" | "sell";
 type Side = "YES" | "NO";
@@ -187,21 +188,21 @@ export function TradePanel({ market }: { market: Market }) {
   const sideBps = side === "YES" ? yesBps : 10_000 - yesBps;
 
   return (
-    <section aria-label="Trade" className="rounded-[6px] border border-rule bg-surface">
-      <div role="tablist" aria-label="Buy or sell" className="grid grid-cols-2 border-b border-rule text-sm">
+    <section aria-label="Trade" className="glow overflow-hidden rounded-3xl border border-brand/25 bg-surface/90 backdrop-blur">
+      <div role="tablist" aria-label="Buy or sell" className="m-3 grid grid-cols-2 rounded-full bg-surface-2 p-1 text-sm">
         {(["buy", "sell"] as const).map((m) => (
           <button
             key={m}
             role="tab"
             aria-selected={mode === m}
             onClick={() => setMode(m)}
-            className={`py-2.5 capitalize ${mode === m ? "border-b-2 border-ink font-semibold" : "text-ink-2"}`}
+            className={`rounded-full py-2 capitalize transition ${mode === m ? "bg-brand font-semibold text-brand-ink" : "text-ink-2 hover:text-ink"}`}
           >
             {m}
           </button>
         ))}
       </div>
-      <div className="space-y-4 p-4">
+      <div className="space-y-4 px-5 pt-2 pb-5">
         <div role="radiogroup" aria-label="Outcome" className="grid grid-cols-2 gap-2">
           {(["YES", "NO"] as const).map((s) => {
             const bps = s === "YES" ? yesBps : 10_000 - yesBps;
@@ -212,16 +213,16 @@ export function TradePanel({ market }: { market: Market }) {
                 role="radio"
                 aria-checked={active}
                 onClick={() => setSide(s)}
-                className={`flex h-12 items-center justify-between rounded-[4px] border px-3 font-mono ${
+                className={`flex h-14 items-center justify-between rounded-2xl border px-4 font-mono transition ${
                   active
                     ? s === "YES"
-                      ? "border-yes bg-yes-bg text-yes"
-                      : "border-no bg-no-bg text-no"
-                    : "border-rule-strong text-ink-2"
+                      ? "glow-yes border-yes bg-yes-bg text-yes"
+                      : "glow-no border-no bg-no-bg text-no"
+                    : "border-rule-strong text-ink-2 hover:border-ink-3"
                 }`}
               >
-                <span className="text-sm font-semibold">{s}</span>
-                <span>{formatCents(bps)}</span>
+                <span className="text-xs font-bold tracking-[0.2em]">{s}</span>
+                <span className="text-xl">{formatCents(bps)}</span>
               </button>
             );
           })}
@@ -250,12 +251,12 @@ export function TradePanel({ market }: { market: Market }) {
             placeholder="0.00"
             value={input}
             onChange={(e) => setInput(e.target.value.replace(/[^\d.,]/g, ""))}
-            className="font-mono text-base"
+            className="h-14 rounded-2xl font-mono text-xl"
             aria-invalid={input !== "" && amount === null}
           />
         </div>
 
-        <dl className="space-y-1 font-mono text-sm" aria-live="polite">
+        <dl className="space-y-1.5 rounded-2xl border border-rule bg-surface-2/60 p-4 font-mono text-sm" aria-live="polite">
           {quote && "q" in quote ? (
             <>
               <Row label={mode === "buy" ? "Shares" : "You receive"} raw={(mode === "buy" ? quote.q.shares : quote.collateral).toString()}>
@@ -263,7 +264,9 @@ export function TradePanel({ market }: { market: Market }) {
               </Row>
               <Row label="Avg price">{formatCents(quote.q.avgPriceBps)}</Row>
               <Row label="Price impact">
-                {formatCents(sideBps)} → {formatCents(quote.q.sidePriceAfterBps)}
+                <span className="inline-flex items-center gap-1">
+                  {formatCents(sideBps)} <ArrowRight size={12} aria-label="to" /> {formatCents(quote.q.sidePriceAfterBps)}
+                </span>
               </Row>
               <Row label="Fee" raw={quote.q.fee.toString()}>
                 {formatUsd(quote.q.fee)}
@@ -285,7 +288,7 @@ export function TradePanel({ market }: { market: Market }) {
                 key={String(s)}
                 onClick={() => setSlippage(s)}
                 aria-pressed={slippage === s}
-                className={`rounded-[4px] border px-2 py-0.5 font-mono ${slippage === s ? "border-ink text-ink" : "border-rule text-ink-3"}`}
+                className={`rounded-full border px-2.5 py-0.5 font-mono ${slippage === s ? "border-brand/60 text-accent" : "border-rule text-ink-3"}`}
               >
                 {Number(s) / 100}%
               </button>
@@ -304,22 +307,24 @@ export function TradePanel({ market }: { market: Market }) {
         ) : !open ? (
           <PanelNote>{market.paused || live.data?.paused ? "Trading is paused on this market." : "Trading has closed."}</PanelNote>
         ) : (
-          <Button
-            className="w-full"
-            variant={side === "YES" ? "yes" : "no"}
-            disabled={busy || !quote || "error" in quote || insufficient}
-            onClick={submit}
-          >
-            {busy
-              ? "Waiting for wallet…"
-              : insufficient
-                ? "Not enough demo USD"
-                : `${mode === "buy" ? "Buy" : "Sell"} ${side}`}
-          </Button>
+          <ClickSpark sparkColor={side === "YES" ? "#2be59a" : "#ff5a7a"} sparkCount={10} sparkRadius={22}>
+            <Button
+              className="h-13 w-full text-base"
+              variant={side === "YES" ? "yes" : "no"}
+              disabled={busy || !quote || "error" in quote || insufficient}
+              onClick={submit}
+            >
+              {busy
+                ? "Waiting for wallet…"
+                : insufficient
+                  ? "Not enough demo USD"
+                  : `${mode === "buy" ? "Buy" : "Sell"} ${side}`}
+            </Button>
+          </ClickSpark>
         )}
         {isConnected && !wrongChain && (balance.data ?? 0n) === 0n && mode === "buy" ? (
           <p className="text-center text-xs text-ink-2">
-            No demo USD yet? <a href="/faucet" className="underline">Get some from the faucet</a>.
+            No demo USD yet? <a href="/faucet" className="text-accent hover:underline">Get some from the faucet</a>.
           </p>
         ) : null}
       </div>
@@ -340,5 +345,5 @@ function Row({ label, raw, children }: { label: string; raw?: string; children: 
 }
 
 function PanelNote({ children }: { children: React.ReactNode }) {
-  return <p className="rounded-[4px] border border-dashed border-rule-strong px-3 py-3 text-center text-sm text-ink-2">{children}</p>;
+  return <p className="rounded-2xl border border-dashed border-rule-strong px-4 py-4 text-center text-sm text-ink-2">{children}</p>;
 }

@@ -49,7 +49,7 @@ function Composer({ marketId, defaultSide, parentId, onDone }: { marketId: strin
         value={text}
         onChange={(e) => setText(e.target.value)}
         placeholder={parentId ? "Reply" : "Your take on this call"}
-        className="w-full rounded-[4px] border border-rule-strong bg-surface p-2 text-sm"
+        className="w-full rounded-xl border border-rule-strong bg-surface p-2 text-sm"
         rows={parentId ? 2 : 3}
       />
       <div className="flex items-center gap-2">
@@ -61,7 +61,7 @@ function Composer({ marketId, defaultSide, parentId, onDone }: { marketId: strin
               role="radio"
               aria-checked={side === s}
               onClick={() => setSide(s)}
-              className={`rounded-[4px] border px-2 py-1 font-mono text-xs ${side === s ? (s === "YES" ? "border-yes bg-yes-bg text-yes" : "border-no bg-no-bg text-no") : "border-rule text-ink-2"}`}
+              className={`rounded-xl border px-2 py-1 font-mono text-xs ${side === s ? (s === "YES" ? "border-yes bg-yes-bg text-yes" : "border-no bg-no-bg text-no") : "border-rule text-ink-2"}`}
             >
               {s}
             </button>

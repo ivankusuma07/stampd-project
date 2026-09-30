@@ -65,7 +65,7 @@ export function NotificationBell() {
     <div className="relative" ref={ref}>
       <BellToggle count={data?.unread ?? 0} aria-expanded={open} aria-haspopup="true" onClick={() => setOpen((o) => !o)} />
       {open ? (
-        <div className="absolute right-0 z-40 mt-2 w-[min(22rem,calc(100vw-2rem))] rounded-[6px] border border-rule bg-surface">
+        <div className="absolute right-0 z-40 mt-2 w-[min(22rem,calc(100vw-2rem))] rounded-2xl border border-rule bg-surface">
           <div className="flex items-center justify-between border-b border-rule px-3 py-2">
             <span className="text-xs font-semibold tracking-[0.12em] uppercase">Notifications</span>
             {data?.unread ? (
@@ -97,7 +97,7 @@ export function NotificationBell() {
                       await qc.invalidateQueries({ queryKey: ["notifications"] });
                     }
                   }}
-                  className="block px-3 py-2.5 hover:bg-paper"
+                  className="block px-3 py-2.5 hover:bg-surface-2"
                 >
                   <span className="flex items-baseline justify-between gap-2">
                     <span className={`text-sm ${n.readAt ? "text-ink-2" : "font-semibold text-ink"}`}>{n.title}</span>

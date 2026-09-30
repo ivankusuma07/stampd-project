@@ -6,6 +6,7 @@ import { Button, EmptyState } from "@stampd/ui";
 import { formatDateTimeUtc } from "@stampd/core";
 import { SignInGate } from "@/components/sign-in-gate";
 import { markRead, useNotifications } from "@/components/notifications";
+import { PageHeader } from "@/components/page-header";
 
 function List() {
   const qc = useQueryClient();
@@ -31,7 +32,7 @@ function List() {
               onClick={() => (n.readAt ? undefined : markRead({ ids: [n.id] }).then(refresh))}
               className="flex gap-3 py-3 hover:bg-surface"
             >
-              <span aria-hidden className={`mt-2 h-2 w-2 shrink-0 rounded-full ${n.readAt ? "bg-transparent" : "bg-ink"}`} />
+              <span aria-hidden className={`mt-2 h-2 w-2 shrink-0 rounded-full ${n.readAt ? "bg-transparent" : "bg-brand shadow-[0_0_8px_var(--brand)]"}`} />
               <span className="min-w-0 flex-1">
                 <span className={`block ${n.readAt ? "text-ink-2" : "font-semibold"}`}>
                   {n.title}
@@ -51,7 +52,7 @@ function List() {
 export default function NotificationsPage() {
   return (
     <div className="space-y-6">
-      <h1 className="font-serif text-3xl font-semibold">Notifications</h1>
+      <PageHeader eyebrow="Inbox" title="Notifications" tone="violet" />
       <SignInGate why="Notifications belong to your wallet.">
         <List />
       </SignInGate>

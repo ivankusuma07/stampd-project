@@ -4,7 +4,7 @@ import { Tabs, tabClass } from "@stampd/ui";
 import { CATEGORIES } from "@stampd/core";
 import { serverGet } from "@/lib/api";
 import type { Market } from "@/lib/types";
-import { MarketTable } from "@/components/market-table";
+import { MarketGrid } from "@/components/market-grid";
 
 export const metadata: Metadata = { title: "Markets" };
 
@@ -41,36 +41,49 @@ export default async function MarketsPage({ searchParams }: { searchParams: Sear
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="font-serif text-3xl font-semibold">Markets</h1>
-        <p className="font-mono text-sm text-ink-3">{data ? `${data.total} markets` : "unavailable"}</p>
-      </div>
-      <Tabs label="Status">
-        {STATUSES.map(([s, label]) => (
-          <Link key={s} href={link({ status: s })} className={tabClass(status === s)}>
-            {label}
-          </Link>
-        ))}
-      </Tabs>
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-        <span className="text-ink-3">Category</span>
-        <Link href={link({ category: undefined })} className={!category ? "font-semibold" : "text-ink-2"}>
-          All
-        </Link>
-        {CATEGORIES.map((c) => (
-          <Link key={c} href={link({ category: c })} className={`capitalize ${category === c ? "font-semibold" : "text-ink-2"}`}>
-            {c}
-          </Link>
-        ))}
-        <span className="ml-auto text-ink-3">Sort</span>
-        {SORTS.map(([s, label]) => (
-          <Link key={s} href={link({ sort: s })} className={sort === s ? "font-semibold" : "text-ink-2"}>
-            {label}
-          </Link>
-        ))}
-      </div>
-      <MarketTable initial={data?.markets ?? []} query={q.toString()} empty="No markets match these filters" />
+    <div className="space-y-8">
+      <header className="relative overflow-hidden rounded-3xl border border-rule bg-surface/80 p-6 backdrop-blur md:p-8">
+        <div aria-hidden className="pointer-events-none absolute -top-32 right-0 h-72 w-72 rounded-full bg-brand/15 blur-3xl" />
+        <div className="relative flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold tracking-[0.2em] text-accent uppercase">Prediction markets</p>
+            <h1 className="mt-1 font-display text-3xl font-extrabold tracking-tight md:text-5xl">Markets</h1>
+            <p className="mt-2 max-w-xl text-ink-2">Every market is a call someone made on X. Buy the side you believe; the price is the crowd&apos;s odds.</p>
+          </div>
+          <span className="rounded-full border border-rule-strong bg-surface-2/70 px-4 py-2 font-mono text-sm text-ink-2">
+            {data ? `${data.total} ${data.total === 1 ? "market" : "markets"}` : "unavailable"}
+          </span>
+        </div>
+        <div className="relative mt-6 space-y-3">
+          <Tabs label="Status">
+            {STATUSES.map(([s, label]) => (
+              <Link key={s} href={link({ status: s })} className={tabClass(status === s)}>
+                {label}
+              </Link>
+            ))}
+          </Tabs>
+          <div className="flex flex-wrap items-center gap-2 text-sm">
+            <span className="mr-1 text-xs tracking-[0.2em] text-ink-3 uppercase">Category</span>
+            <Link href={link({ category: undefined })} className={tabClass(!category)}>
+              All
+            </Link>
+            {CATEGORIES.map((c) => (
+              <Link key={c} href={link({ category: c })} className={`${tabClass(category === c)} capitalize`}>
+                {c}
+              </Link>
+            ))}
+          </div>
+          <div className="flex flex-wrap items-center gap-2 text-sm">
+            <span className="mr-1 text-xs tracking-[0.2em] text-ink-3 uppercase">Sort</span>
+            {SORTS.map(([s, label]) => (
+              <Link key={s} href={link({ sort: s })} className={tabClass(sort === s)}>
+                {label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </header>
+      <MarketGrid initial={data?.markets ?? []} query={q.toString()} empty="No markets match these filters" />
     </div>
   );
 }

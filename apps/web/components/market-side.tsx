@@ -63,7 +63,7 @@ export function PositionBox({ market }: { market: Market }) {
   const value = (yes * BigInt(market.yesPriceBps) + no * BigInt(10_000 - market.yesPriceBps)) / 10_000n;
 
   return (
-    <section className="rounded-[6px] border border-rule bg-surface p-4">
+    <section className="rounded-2xl border border-rule bg-surface p-4">
       <h2 className="text-xs font-semibold tracking-[0.12em] uppercase">
         <span className="mark">Your position</span>
       </h2>
@@ -164,12 +164,12 @@ export function ResolutionPanel({ market }: { market: Market }) {
         {evidenceOpen ? "Hide evidence" : "Show evidence"}
       </button>
       {evidenceOpen ? (
-        <pre className="max-h-64 overflow-auto rounded-[4px] border border-rule bg-paper p-3 font-mono text-xs whitespace-pre-wrap">
+        <pre className="max-h-64 overflow-auto rounded-xl border border-rule bg-surface-2 p-3 font-mono text-xs whitespace-pre-wrap">
           {res.evidence ? JSON.stringify(res.evidence, null, 2) : res.evidenceUri}
         </pre>
       ) : null}
       {windowOpen && address && bond.data !== undefined ? (
-        <div className="rounded-[4px] border border-rule p-3">
+        <div className="rounded-xl border border-rule p-3">
           <p className="mb-2 text-ink-2">
             Think the proposal is wrong? Posting a dispute costs a <strong className="font-mono">{formatUsd(bond.data)}</strong> bond.
             You get it back plus the proposer&apos;s bond if the arbiter agrees with you; you lose it if not.
@@ -245,7 +245,7 @@ export function ShareReceipt({ market, postedAt }: { market: Market; postedAt?: 
           {block}
         </TearTicket>
       ) : (
-        <div className="rounded-[6px] border border-rule bg-surface">{block}</div>
+        <div className="rounded-2xl border border-rule bg-surface">{block}</div>
       )}
       <Button variant="secondary" className="w-full" onClick={share}>
         <Share2 size={16} strokeWidth={1.5} aria-hidden />
@@ -305,7 +305,7 @@ export function WatchFlag({ market, watching }: { market: Market; watching: bool
             maxLength={500}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            className="w-full rounded-[4px] border border-rule-strong bg-surface p-2 text-sm"
+            className="w-full rounded-xl border border-rule-strong bg-surface p-2 text-sm"
           />
           <Button type="submit" variant="secondary">
             Send flag
