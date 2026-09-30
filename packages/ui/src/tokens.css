@@ -1,0 +1,166 @@
+/*
+ * STAMPD "Receipt" design tokens — development plan 1.3 (contrast measured against WCAG 2.x).
+ * Light is the default (printed page). Dark follows prefers-color-scheme unless the user picked a
+ * theme with the toggle, which sets data-theme on <html>.
+ */
+
+:root {
+  --paper: #f6f4ee;
+  --surface: #ffffff;
+  --ink: #16140f;
+  --ink-2: #4a463d;
+  --ink-3: #6b665a;
+  --rule: #d9d4c7;
+  --rule-strong: #8a8475;
+  --yes: #0b7449;
+  --yes-bg: #ddf0e5;
+  --no: #b3262e;
+  --no-bg: #f6e1df;
+  --mark: #ffd23f;
+  /* text on the highlighter stays dark in both themes */
+  --mark-ink: #16140f;
+  --focus: #1f4fd8;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #12110f;
+    --surface: #1b1a17;
+    --ink: #f2efe6;
+    --ink-2: #bdb7a9;
+    --ink-3: #8f897c;
+    --rule: #2f2d28;
+    --rule-strong: #6e695e;
+    --yes: #3dcb87;
+    --yes-bg: #16301f;
+    --no: #ff7a73;
+    --no-bg: #3a1c1a;
+    --focus: #7fa2ff;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --paper: #12110f;
+  --surface: #1b1a17;
+  --ink: #f2efe6;
+  --ink-2: #bdb7a9;
+  --ink-3: #8f897c;
+  --rule: #2f2d28;
+  --rule-strong: #6e695e;
+  --yes: #3dcb87;
+  --yes-bg: #16301f;
+  --no: #ff7a73;
+  --no-bg: #3a1c1a;
+  --focus: #7fa2ff;
+  color-scheme: dark;
+}
+
+/* Tailwind v4 theme: utilities like bg-paper, text-ink-2, border-rule, font-serif. */
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+  --color-yes: var(--yes);
+  --color-yes-bg: var(--yes-bg);
+  --color-no: var(--no);
+  --color-no-bg: var(--no-bg);
+  --color-mark: var(--mark);
+  --color-mark-ink: var(--mark-ink);
+  --color-focus: var(--focus);
+
+  --font-serif: var(--font-newsreader), Georgia, serif;
+  --font-sans: var(--font-plex-sans), system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+
+  /* type scale, development plan 1.4 */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: 2.25rem;
+  --text-4xl: 3rem;
+
+  --radius-control: 4px;
+  --radius-card: 6px;
+}
+
+@layer base {
+  html {
+    background: var(--paper);
+    color: var(--ink);
+  }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  /* every number is tabular (plan 1.2 "Do") */
+  .num,
+  .font-mono {
+    font-variant-numeric: tabular-nums;
+  }
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+  a:hover {
+    color: var(--focus);
+  }
+  ::selection {
+    background: var(--mark);
+    color: var(--mark-ink);
+  }
+}
+
+/* The highlighter: behind ink text only, never a text colour or a large fill (plan 1.3). */
+.mark {
+  background: var(--mark);
+  color: var(--mark-ink);
+  padding: 0 0.15em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* Dashed rules on receipt-style blocks only (plan 1.5). */
+.receipt-rule {
+  border-top: 1px dashed var(--rule-strong);
+}
+
+/* Price flash: 600ms tint on the changed number, off under reduced motion (plan 1.5). */
+@keyframes flash-yes {
+  from {
+    background: var(--yes-bg);
+  }
+  to {
+    background: transparent;
+  }
+}
+@keyframes flash-no {
+  from {
+    background: var(--no-bg);
+  }
+  to {
+    background: transparent;
+  }
+}
+.flash-up {
+  animation: flash-yes 600ms ease-out;
+}
+.flash-down {
+  animation: flash-no 600ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .flash-up,
+  .flash-down {
+    animation: none;
+  }
+}

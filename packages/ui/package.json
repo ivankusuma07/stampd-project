@@ -1,0 +1,29 @@
+{
+  "name": "@stampd/ui",
+  "private": true,
+  "version": "0.1.0",
+  "description": "STAMPD design tokens and components. Contains React Bits code (MIT + Commons Clause): never publish this package on its own.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./tokens.css": "./src/tokens.css"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "check:bits": "node scripts/check-bits.mjs"
+  },
+  "dependencies": {
+    "@stampd/core": "workspace:*"
+  },
+  "peerDependencies": {
+    "lucide-react": ">=1",
+    "motion": ">=12",
+    "react": ">=19"
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "lucide-react": "^1.49.0",
+    "motion": "^13.4.6",
+    "react": "^19.3.0"
+  }
+}
