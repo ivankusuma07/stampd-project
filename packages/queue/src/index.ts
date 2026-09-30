@@ -64,8 +64,15 @@ export function getQueue(): Queue {
   return queue;
 }
 
+/**
+ * BullMQ rejects a custom jobId containing ":" unless it splits into exactly three parts
+ * ("Custom Id cannot contain :"). Our natural keys read better with ":" (`draft:<postId>`), so
+ * map them to "-" here; the mapping is deterministic, so a key still dedupes its job.
+ */
+export const safeJobId = (jobId: string) => jobId.replaceAll(":", "-");
+
 export function enqueue<N extends JobName>(name: N, data: JobMap[N], opts: JobsOptions = {}) {
-  return getQueue().add(name, data, opts);
+  return getQueue().add(name, data, opts.jobId ? { ...opts, jobId: safeJobId(opts.jobId) } : opts);
 }
 
 /** Status flags the worker writes to Redis and the API reads (e.g. the "new markets paused" banner). */
