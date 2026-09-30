@@ -59,7 +59,7 @@ The approved components were pulled from the React Bits registry (TS + Tailwind)
 - **Noise** draws one tile once instead of a full-screen canvas every other frame.
 - **Topography** was not added: it's optional in the plan and the home page reads fine without it.
 
-`pnpm --filter @stampd/ui check:bits` fails on any hardcoded colour, gradient, shadow or Hugeicons import in `src/bits`.
+The `check:bits` guard described here was relaxed by D14.
 
 ## D11 — Versions
 
@@ -78,3 +78,29 @@ Decided 30 Sep 2026, replacing plan B4's Claude Haiku 4.5, with no fallback prov
 - **Cost logging** uses DeepSeek's cache-hit/cache-miss token split and its peak/off-peak pricing (peak 01–04 and 06–10 UTC on weekdays). Chinese public holidays are not modelled.
 - **Live check** (`pnpm --filter @stampd/ai live-check`): 6 of 6 posts with known answers handled correctly — dated calls (bullish and bearish), hype, a target with no date, a prompt-injection post, and a self-controlled outcome — for about $0.0014 per run. The first run found that the check pass wasn't given the current date (it judged 2026 deadlines against its training data), misread the side convention on bearish calls, and that "above" should map to `>` not `>=`; all three were fixed in the prompts.
 - **For the legal review (V11):** only public X post text is sent; DeepSeek processes it on servers in China.
+
+## D14 — "Neon Receipt" visual direction replaces the paper theme
+
+Decided 30 Sep 2026 by the project owner, overriding the plan's visual rules in §1.2 and §1.8 (a paper-and-ink theme, light by default, with no gradients, glows or shadows). Those rules produced a UI the owner judged too plain for a web3 product. What changed:
+
+- **Dark by default.** The palette is near-black with a neon lime brand (`#c8ff2e`) plus violet and cyan accents. Light remains an explicit choice from the header toggle (`data-theme="light"`). Body text still meets WCAG AA in both themes.
+- **Icons:** lucide-react only, never text glyphs (▲ ▼ ↗ → ✦) or emoji. The decorative pieces that remain are animated shapes, not icons: the progress ring, the ticket outlines and the logo stamp.
+- **Type:** Unbounded for display headings, Manrope for UI text and market questions, JetBrains Mono for figures.
+- **Allowed now:** gradients, glows, glass cards and animated React Bits. Added bits: LightRays (ogl), RotatingText, BlurText, ShinyText, GradientText, DecryptedText, CountUp, SpotlightCard, ElectricBorder, StarBorder, GlareHover, ClickSpark, LogoLoop and Magnet. Anything that needs three.js or gsap was left out.
+- **What didn't change:** the receipt remains the product's signature (dashed rules, stamps, the tx hash). Prices always render as plain text under `prefers-reduced-motion`, which also turns off WebGL, the electric border and the flashes. There is still no horizontal scroll at 390 px.
+- **`check:bits` now bans** three.js, gsap and Hugeicons imports, and any hardcoded hex colour in `src/bits`. A canvas or WebGL bit that has to take a raw colour (ClickSpark, ElectricBorder, GlareHover's glare, LightRays) opts out with a `check-bits: raw-colours` comment that says why.
+
+## D15 — Hosting: Railway + Vercel, Railway Postgres and Redis
+
+Decided 30 Sep 2026 by the project owner, replacing the plan's Supabase / Upstash / Fly.io set-up. The api, worker and
+scraper run on Railway as Docker services; Postgres and Redis are Railway's own, on the same private network. The web
+app runs on Vercel.
+
+- **Railway Postgres** has no connection pooler, so one `DATABASE_URL` serves the app and `prisma migrate`
+  (`DIRECT_URL` stays optional). Pools are sized with `DATABASE_POOL_MAX` (10 each for api and worker, well under
+  Postgres's 100 connections).
+- **Railway Redis instead of Upstash**: BullMQ polls continuously, and Upstash bills per command.
+- **IPv6 private network**: the api and scraper listen on `::`; ioredis connections use `family: 0`.
+- **Contract deploys** go through `pnpm --filter @stampd/contracts deploy:chain`, which simulates by default and
+  records addresses only on a real broadcast.
+- `apps/scraper/fly.toml` was removed.

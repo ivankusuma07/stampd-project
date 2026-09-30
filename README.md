@@ -19,7 +19,7 @@ packages/
   ai/         DeepSeek extraction + check passes, prefilter, validators, moderation routing
   db/         Prisma 7 schema + migration (27 tables), PGlite test database
   queue/      Job names/payloads shared by api and worker
-  ui/         "Receipt" design tokens, components, restyled React Bits (MIT + Commons Clause — never publish)
+  ui/         "Neon Receipt" design tokens (D14), components, adapted React Bits (MIT + Commons Clause — never publish)
 docs/         decisions · runbook · security · moderation playbook
 ```
 
