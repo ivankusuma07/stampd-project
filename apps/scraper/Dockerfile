@@ -9,5 +9,6 @@ COPY stampd_scraper ./stampd_scraper
 ENV ACCOUNTS_DB=/data/accounts.db
 ENV PORT=8000
 EXPOSE 8000
-# "::" listens on IPv6 and IPv4 — Railway's private network (scraper.railway.internal) is IPv6.
-CMD ["sh", "-c", "exec uv run --no-dev uvicorn stampd_scraper.app:main_app --factory --host :: --port ${PORT}"]
+# One dual-stack socket: IPv6 for Railway's private network (scraper.railway.internal), IPv4 for the
+# health check. Plain `uvicorn --host ::` would be IPv6-only (see stampd_scraper/serve.py).
+CMD ["uv", "run", "--no-dev", "python", "-m", "stampd_scraper.serve"]
