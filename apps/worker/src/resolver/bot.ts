@@ -74,6 +74,19 @@ export class ResolverBot {
   /** Read the source and propose. Returns false (with one alert) when it needs a human. */
   async autoPropose(marketId: string): Promise<boolean> {
     const m = await this.d.db.market.findUniqueOrThrow({ where: { id: marketId } });
+    if (m.delistedAt) {
+      // An admin took this market off the site (D17): settle it INVALID rather than asking a human.
+      await this.propose(m.onchainId!, "INVALID", {
+        version: 1,
+        marketId: m.onchainId!.toString(),
+        questionHash: m.questionHash,
+        delisted: true,
+        reason: m.delistReason,
+        outcome: "INVALID",
+        readAt: this.now().toISOString(),
+      });
+      return true;
+    }
     const spec = m.spec as unknown as MarketSpec;
     const adapter = spec?.resolution ? this.adapters[spec.resolution.source] : undefined;
     const symbol = spec?.resolution ? symbolFor(spec) : null;

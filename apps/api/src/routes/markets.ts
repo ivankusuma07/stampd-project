@@ -23,7 +23,7 @@ export const marketRoutes: FastifyPluginAsyncZod = async (app) => {
   app.get("/markets", { schema: { querystring: ListQuery } }, async (req, reply) => {
     const q = req.query;
     const now = deps.now();
-    const where: Prisma.MarketWhereInput = { status: { not: "PENDING" } };
+    const where: Prisma.MarketWhereInput = { status: { not: "PENDING" }, delistedAt: null };
     if (q.category) where.category = q.category;
     if (q.kol) where.kol = { xHandle: q.kol };
     if (q.status === "open") Object.assign(where, { status: "OPEN", closeTime: { gt: now } });
@@ -73,7 +73,7 @@ export const marketRoutes: FastifyPluginAsyncZod = async (app) => {
     async (req) => {
       const now = deps.now();
       const rows = await db.market.findMany({
-        where: { status: "OPEN", closeTime: { gt: now }, tradeCount: { gt: 0 } },
+        where: { status: "OPEN", closeTime: { gt: now }, tradeCount: { gt: 0 }, delistedAt: null },
         include: { kol: true },
         orderBy: { volume: "desc" },
         take: 500,
@@ -93,7 +93,7 @@ export const marketRoutes: FastifyPluginAsyncZod = async (app) => {
       where: { id: req.params.id },
       include: { kol: true, resolution: true, prediction: { include: { post: true } } },
     });
-    if (!m || m.status === "PENDING") return reply.code(404).send({ error: "market not found" });
+    if (!m || m.status === "PENDING" || m.delistedAt) return reply.code(404).send({ error: "market not found" });
     const changes = await changes24h(db, [m], now);
 
     let viewer = null;

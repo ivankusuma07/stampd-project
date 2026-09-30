@@ -118,3 +118,15 @@ human in the loop during the testnet phase.
   settle on its own). Everything that fails a validator is still auto-rejected.
 - Drafts that don't fit a template stay in the review queue unpublished; nobody has to act on them.
 - Revisit before mainnet: measure agreement on a sample of published markets and keep the gate for new templates.
+
+## D17 — Admins can delist a market
+
+Added 1 Oct 2026 after three hand-approved markets (a US Treasury yield, the US midterms, an IPO) turned out to be
+unwanted. A market can't be deleted onchain, so **Delist** (Admin → markets):
+
+- hides it from every public listing, KOL page, search and the ticker, and its page returns 404;
+- pauses trading onchain from the admin wallet (a transaction you sign);
+- makes the resolver bot propose **INVALID** at close instead of asking for a manual result, so holders get 0.50 per
+  share and the creator's seed liquidity comes back.
+
+**Relist** undoes it until a result has been proposed. Both actions are written to the admin audit log.

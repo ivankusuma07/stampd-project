@@ -171,7 +171,7 @@ export const socialRoutes: FastifyPluginAsyncZod = async (app) => {
     const q = req.query.q.replace(/^@/, "");
     const [markets, kols] = await Promise.all([
       db.market.findMany({
-        where: { status: { not: "PENDING" }, question: { contains: q, mode: "insensitive" } },
+        where: { status: { not: "PENDING" }, delistedAt: null, question: { contains: q, mode: "insensitive" } },
         include: { kol: true },
         orderBy: { volume: "desc" },
         take: 8,

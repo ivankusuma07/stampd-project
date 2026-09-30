@@ -80,6 +80,7 @@ describe.skipIf(anvilPath() === null)("pipeline: approve → create → index �
       [1, "90000"],
       [2, "150000"],
       [3, "90000"],
+      [4, "90000"],
     ] as const) {
       const p = await approvedPrediction(n, threshold, closeTime);
       const { marketId, txHash } = await createMarket(creatorDeps, p.id);
@@ -90,7 +91,7 @@ describe.skipIf(anvilPath() === null)("pipeline: approve → create → index �
     }
     await indexer.runUntilHead();
     const opened = await db.market.findMany({ where: { id: { in: ids } }, orderBy: { onchainId: "asc" } });
-    expect(opened.map((m) => m.status)).toEqual(["OPEN", "OPEN", "OPEN"]);
+    expect(opened.map((m) => m.status)).toEqual(["OPEN", "OPEN", "OPEN", "OPEN"]);
     expect(opened.every((m) => m.specUri?.startsWith("data:application/json;base64,"))).toBe(true);
     expect((await db.prediction.findMany()).every((p) => p.status === "PUBLISHED")).toBe(true);
 
@@ -125,15 +126,19 @@ describe.skipIf(anvilPath() === null)("pipeline: approve → create → index �
 
     // market 3: an admin decides it can't be settled fairly → INVALID; the bot handles 1 and 2
     await bot.manualPropose(ids[2]!, "INVALID", "source outage on the deadline day");
+    // market 4 would settle YES from the source, but an admin delisted it (D17) → INVALID, no alert
+    await db.market.update({ where: { id: ids[3]! }, data: { delistedAt: now, delistReason: "off-topic" } });
     await indexer.runUntilHead();
     const scan1 = await bot.scan();
-    expect(scan1.proposed.sort()).toEqual([ids[0], ids[1]].sort());
+    expect(scan1.proposed.sort()).toEqual([ids[0], ids[1], ids[3]].sort());
     await indexer.runUntilHead();
     const proposals = await db.resolution.findMany({ where: { marketId: { in: ids } } });
     const byId = Object.fromEntries(proposals.map((r) => [r.marketId, r]));
     expect(byId[ids[0]!]!.proposedOutcome).toBe("YES");
     expect(byId[ids[1]!]!.proposedOutcome).toBe("NO");
     expect(byId[ids[2]!]!.proposedOutcome).toBe("INVALID");
+    expect(byId[ids[3]!]!.proposedOutcome).toBe("INVALID");
+    expect(byId[ids[3]!]!.evidence).toMatchObject({ delisted: true, reason: "off-topic", outcome: "INVALID" });
     expect(byId[ids[0]!]!.evidence).toMatchObject({ outcome: "YES", matched: { close: "95000" }, source: { symbol: "BTC-USD" } });
 
     // nothing to finalize inside the dispute window
@@ -150,6 +155,7 @@ describe.skipIf(anvilPath() === null)("pipeline: approve → create → index �
     expect(resolved.map((m) => [m.status, m.result])).toEqual([
       ["RESOLVED", "YES"],
       ["RESOLVED", "NO"],
+      ["RESOLVED", "INVALID"],
       ["RESOLVED", "INVALID"],
     ]);
 

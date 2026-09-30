@@ -284,7 +284,41 @@ export const adminRoutes: FastifyPluginAsyncZod = async (app) => {
       orderBy: { createdAt: "desc" },
       take: 300,
     });
-    return { markets: rows.map((m) => ({ ...marketDto(m, now, { resolution: m.resolution }), flags: m._count.flags })) };
+    return {
+      markets: rows.map((m) => ({
+        ...marketDto(m, now, { resolution: m.resolution }),
+        flags: m._count.flags,
+        delistedAt: m.delistedAt?.toISOString() ?? null,
+        delistReason: m.delistReason,
+      })),
+    };
+  });
+
+  /**
+   * Take a market off the site (docs/decisions.md D17). It disappears from every public listing and
+   * its page returns 404; trading should also be paused onchain from the admin wallet. At close the
+   * resolver proposes INVALID, which pays 0.50 per share of either side.
+   */
+  app.post(
+    "/markets/:id/delist",
+    { schema: { params: z.object({ id: z.string().max(40) }), body: z.object({ reason: z.string().trim().min(3).max(500) }) } },
+    async (req, reply) => {
+      const m = await db.market.findUnique({ where: { id: req.params.id } });
+      if (!m) return reply.code(404).send({ error: "market not found" });
+      if (m.status === "RESOLVED") return reply.code(409).send({ error: "already resolved" });
+      await db.market.update({ where: { id: m.id }, data: { delistedAt: deps.now(), delistReason: req.body.reason } });
+      await audit(req.wallet!, "market.delist", m.id, req.body);
+      return { delisted: true };
+    },
+  );
+
+  app.post("/markets/:id/relist", { schema: { params: z.object({ id: z.string().max(40) }) } }, async (req, reply) => {
+    const m = await db.market.findUnique({ where: { id: req.params.id }, include: { resolution: true } });
+    if (!m) return reply.code(404).send({ error: "market not found" });
+    if (m.resolution) return reply.code(409).send({ error: "a result has already been proposed" });
+    await db.market.update({ where: { id: m.id }, data: { delistedAt: null, delistReason: null } });
+    await audit(req.wallet!, "market.relist", m.id, {});
+    return { delisted: false };
   });
 
   /** Markets that need resolver attention: past close, proposed or disputed. */

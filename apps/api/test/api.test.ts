@@ -138,6 +138,29 @@ describe("markets", () => {
   });
 });
 
+describe("delisting (D17)", () => {
+  it("hides a delisted market from lists, KOL pages, search and its page; relist restores it", async () => {
+    const { market } = await seedMarket(h.db);
+    const user = await h.signIn();
+    expect((await h.app.inject({ method: "POST", url: `/admin/markets/${market.id}/delist`, headers: { cookie: user.cookie }, payload: { reason: "off-topic" } })).statusCode).toBe(403);
+
+    const admin = await h.signIn(ADMIN);
+    const delist = await h.app.inject({ method: "POST", url: `/admin/markets/${market.id}/delist`, headers: { cookie: admin.cookie }, payload: { reason: "off-topic" } });
+    expect(delist.statusCode).toBe(200);
+    expect((await h.app.inject("/markets")).json().total).toBe(0);
+    expect((await h.app.inject(`/markets/${market.id}`)).statusCode).toBe(404);
+    expect((await h.app.inject("/kols/example_kol")).json().markets).toHaveLength(0);
+    expect((await h.app.inject(`/search?q=${encodeURIComponent(market.question.slice(0, 12))}`)).json().markets).toHaveLength(0);
+    const listed = (await h.app.inject({ url: "/admin/markets", headers: { cookie: admin.cookie } })).json().markets;
+    expect(listed[0]).toMatchObject({ id: market.id, delistReason: "off-topic" });
+    expect(await h.db.adminAudit.count({ where: { action: "market.delist", target: market.id } })).toBe(1);
+
+    await h.app.inject({ method: "POST", url: `/admin/markets/${market.id}/relist`, headers: { cookie: admin.cookie } });
+    expect((await h.app.inject("/markets")).json().total).toBe(1);
+    expect((await h.app.inject(`/markets/${market.id}`)).statusCode).toBe(200);
+  });
+});
+
 describe("kols", () => {
   it("directory, profile and follow", async () => {
     const { kol } = await seedMarket(h.db);

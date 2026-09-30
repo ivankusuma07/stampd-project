@@ -233,6 +233,9 @@ model Market {
   status                    MarketStatus @default(PENDING)
   result                    Result?
   paused                    Boolean      @default(false)
+  /// set by an admin to take a market off the site; the resolver proposes INVALID for it at close
+  delistedAt                DateTime?
+  delistReason              String?
   feeBps                    Int
   seedAmount                Decimal      @db.Decimal(78, 0)
   openingYesPriceBps        Int

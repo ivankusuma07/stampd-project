@@ -264,7 +264,7 @@ function Resolutions() {
 function Markets() {
   const tx = useChainTx();
   const qc = useQueryClient();
-  const { data } = useAdmin<{ markets: (Market & { flags: number })[] }>("/markets", "markets");
+  const { data } = useAdmin<{ markets: (Market & { flags: number; delistedAt: string | null; delistReason: string | null })[] }>("/markets", "markets");
   if (!data?.markets.length) return <EmptyState title="No markets" />;
   return (
     <table className="w-full text-sm">
@@ -278,9 +278,36 @@ function Markets() {
               <span className="block font-mono text-xs text-ink-3">
                 {m.status} · YES {formatCents(m.yesPriceBps)} · {m.flags} flag{m.flags === 1 ? "" : "s"}
                 {m.paused ? " · PAUSED" : ""}
+                {m.delistedAt ? ` · DELISTED (${m.delistReason})` : ""}
               </span>
             </td>
-            <td className="py-2 text-right">
+            <td className="space-x-1 py-2 text-right whitespace-nowrap">
+              {m.status !== "RESOLVED" ? (
+                <Button
+                  variant={m.delistedAt ? "secondary" : "no"}
+                  onClick={async () => {
+                    if (m.delistedAt) {
+                      await api(`/admin/markets/${m.id}/relist`, { method: "POST" });
+                    } else {
+                      const reason = window.prompt(
+                        `Take this market off the site?
+
+"${m.question}"
+
+It disappears from every listing and settles INVALID at close. Reason:`,
+                      );
+                      if (!reason || reason.trim().length < 3) return;
+                      await api(`/admin/markets/${m.id}/delist`, { method: "POST", json: { reason: reason.trim() } });
+                      // Stop trading too: pausing is an onchain call from this admin wallet.
+                      if (m.onchainId && m.status === "OPEN" && !m.paused)
+                        await tx("Pause", { address: deployment!.contracts.MarketHub, abi: marketHubAbi, functionName: "setMarketPaused", args: [BigInt(m.onchainId), true] });
+                    }
+                    await qc.invalidateQueries({ queryKey: ["admin", "markets"] });
+                  }}
+                >
+                  {m.delistedAt ? "Relist" : "Delist"}
+                </Button>
+              ) : null}
               {m.onchainId && m.status === "OPEN" ? (
                 <Button
                   variant="ghost"

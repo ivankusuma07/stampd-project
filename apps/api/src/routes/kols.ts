@@ -53,7 +53,7 @@ export const kolRoutes: FastifyPluginAsyncZod = async (app) => {
     });
     if (!kol || kol.excluded) return reply.code(404).send({ error: "not found" });
     const markets = await db.market.findMany({
-      where: { kolId: kol.id, status: { not: "PENDING" } },
+      where: { kolId: kol.id, status: { not: "PENDING" }, delistedAt: null },
       include: { kol: true, resolution: true },
       orderBy: { closeTime: "desc" },
       take: 200,
