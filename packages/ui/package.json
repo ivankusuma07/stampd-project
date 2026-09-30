@@ -18,12 +18,14 @@
   "peerDependencies": {
     "lucide-react": ">=1",
     "motion": ">=12",
-    "react": ">=19"
+    "react": ">=19",
+    "ogl": ">=1"
   },
   "devDependencies": {
     "@types/react": "^19",
     "lucide-react": "^1.49.0",
     "motion": "^13.4.6",
-    "react": "^19.3.0"
+    "react": "^19.3.0",
+    "ogl": "^1.0.11"
   }
 }

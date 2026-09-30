@@ -1,71 +1,80 @@
 /*
- * STAMPD "Receipt" design tokens — development plan 1.3 (contrast measured against WCAG 2.x).
- * Light is the default (printed page). Dark follows prefers-color-scheme unless the user picked a
- * theme with the toggle, which sets data-theme on <html>.
+ * STAMPD "Neon Receipt" design tokens (docs/decisions.md D14 — replaces the plan's paper theme).
+ * Dark is the default brand look; the header toggle switches to light via data-theme="light".
+ * Text/background pairs keep WCAG AA (≥ 4.5:1 body text) in both themes.
  */
 
 :root {
-  --paper: #f6f4ee;
-  --surface: #ffffff;
-  --ink: #16140f;
-  --ink-2: #4a463d;
-  --ink-3: #6b665a;
-  --rule: #d9d4c7;
-  --rule-strong: #8a8475;
-  --yes: #0b7449;
-  --yes-bg: #ddf0e5;
-  --no: #b3262e;
-  --no-bg: #f6e1df;
-  --mark: #ffd23f;
-  /* text on the highlighter stays dark in both themes */
-  --mark-ink: #16140f;
-  --focus: #1f4fd8;
-  color-scheme: light;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --paper: #12110f;
-    --surface: #1b1a17;
-    --ink: #f2efe6;
-    --ink-2: #bdb7a9;
-    --ink-3: #8f897c;
-    --rule: #2f2d28;
-    --rule-strong: #6e695e;
-    --yes: #3dcb87;
-    --yes-bg: #16301f;
-    --no: #ff7a73;
-    --no-bg: #3a1c1a;
-    --focus: #7fa2ff;
-    color-scheme: dark;
-  }
-}
-
-:root[data-theme="dark"] {
-  --paper: #12110f;
-  --surface: #1b1a17;
-  --ink: #f2efe6;
-  --ink-2: #bdb7a9;
-  --ink-3: #8f897c;
-  --rule: #2f2d28;
-  --rule-strong: #6e695e;
-  --yes: #3dcb87;
-  --yes-bg: #16301f;
-  --no: #ff7a73;
-  --no-bg: #3a1c1a;
-  --focus: #7fa2ff;
+  --paper: #06070a;
+  --surface: #0d0f14;
+  --surface-2: #141821;
+  --ink: #f3f5f7;
+  --ink-2: #a9b0c0;
+  --ink-3: #737c8f;
+  --rule: #1c212c;
+  --rule-strong: #2e3546;
+  /* brand: neon lime + violet + cyan */
+  --brand: #c8ff2e;
+  --brand-ink: #0a0c07;
+  --brand-2: #8b7cff;
+  --brand-3: #2de2e6;
+  /* brand colour safe for text on --paper */
+  --accent: #c8ff2e;
+  --yes: #2be59a;
+  --yes-bg: #0c2a1f;
+  --no: #ff5a7a;
+  --no-bg: #2d1119;
+  --mark: #c8ff2e;
+  --mark-ink: #0a0c07;
+  --focus: #8fb8ff;
+  --glow-a: rgba(200, 255, 46, 0.13);
+  --glow-b: rgba(139, 124, 255, 0.16);
+  --grid-line: rgba(255, 255, 255, 0.035);
   color-scheme: dark;
 }
 
-/* Tailwind v4 theme: utilities like bg-paper, text-ink-2, border-rule, font-serif. */
+:root[data-theme="light"] {
+  --paper: #f4f5f7;
+  --surface: #ffffff;
+  --surface-2: #eef0f4;
+  --ink: #0a0c10;
+  --ink-2: #454c5c;
+  --ink-3: #5f6778;
+  --rule: #e1e4ea;
+  --rule-strong: #9aa1b0;
+  --brand: #c8ff2e;
+  --brand-ink: #0a0c07;
+  --brand-2: #6d5cf5;
+  --brand-3: #0fb5ba;
+  --accent: #4b7a00;
+  --yes: #0a8f5a;
+  --yes-bg: #ddf5ea;
+  --no: #d02850;
+  --no-bg: #fbe3e9;
+  --mark: #c8ff2e;
+  --mark-ink: #0a0c07;
+  --focus: #1f4fd8;
+  --glow-a: rgba(140, 200, 0, 0.14);
+  --glow-b: rgba(109, 92, 245, 0.12);
+  --grid-line: rgba(10, 12, 16, 0.05);
+  color-scheme: light;
+}
+
+/* Tailwind v4 theme: bg-paper, text-ink-2, border-rule, bg-brand, font-display … */
 @theme inline {
   --color-paper: var(--paper);
   --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
   --color-ink: var(--ink);
   --color-ink-2: var(--ink-2);
   --color-ink-3: var(--ink-3);
   --color-rule: var(--rule);
   --color-rule-strong: var(--rule-strong);
+  --color-brand: var(--brand);
+  --color-brand-ink: var(--brand-ink);
+  --color-brand-2: var(--brand-2);
+  --color-brand-3: var(--brand-3);
+  --color-accent: var(--accent);
   --color-yes: var(--yes);
   --color-yes-bg: var(--yes-bg);
   --color-no: var(--no);
@@ -74,36 +83,61 @@
   --color-mark-ink: var(--mark-ink);
   --color-focus: var(--focus);
 
-  --font-serif: var(--font-newsreader), Georgia, serif;
-  --font-sans: var(--font-plex-sans), system-ui, sans-serif;
-  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+  /* display headings · UI + market questions · figures */
+  --font-display: var(--font-unbounded), system-ui, sans-serif;
+  --font-serif: var(--font-manrope), system-ui, sans-serif;
+  --font-sans: var(--font-manrope), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
 
-  /* type scale, development plan 1.4 */
-  --text-xs: 0.75rem;
-  --text-sm: 0.875rem;
-  --text-base: 1rem;
-  --text-lg: 1.125rem;
-  --text-xl: 1.375rem;
-  --text-2xl: 1.75rem;
-  --text-3xl: 2.25rem;
-  --text-4xl: 3rem;
+  --animate-star-movement-bottom: star-movement-bottom linear infinite alternate;
+  --animate-star-movement-top: star-movement-top linear infinite alternate;
+  --animate-pulse-dot: pulse-dot 1.8s ease-in-out infinite;
 
-  --radius-control: 4px;
-  --radius-card: 6px;
+  @keyframes star-movement-bottom {
+    0% {
+      transform: translate(0%, 0%);
+      opacity: 1;
+    }
+    100% {
+      transform: translate(-100%, 0%);
+      opacity: 0;
+    }
+  }
+  @keyframes star-movement-top {
+    0% {
+      transform: translate(0%, 0%);
+      opacity: 1;
+    }
+    100% {
+      transform: translate(100%, 0%);
+      opacity: 0;
+    }
+  }
+  @keyframes pulse-dot {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 color-mix(in srgb, var(--yes) 60%, transparent);
+    }
+    50% {
+      box-shadow: 0 0 0 5px transparent;
+    }
+  }
 }
 
 @layer base {
   html {
     background: var(--paper);
     color: var(--ink);
+    overflow-x: clip;
   }
   body {
     background: var(--paper);
     color: var(--ink);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+    /* glows, light rays and the electric border draw past their boxes; never scroll sideways */
+    overflow-x: clip;
   }
-  /* every number is tabular (plan 1.2 "Do") */
   .num,
   .font-mono {
     font-variant-numeric: tabular-nums;
@@ -112,33 +146,73 @@
     outline: 2px solid var(--focus);
     outline-offset: 2px;
   }
-  a:hover {
-    color: var(--focus);
-  }
   ::selection {
-    background: var(--mark);
-    color: var(--mark-ink);
+    background: var(--brand);
+    color: var(--brand-ink);
   }
 }
 
-/* The highlighter: behind ink text only, never a text colour or a large fill (plan 1.3). */
+/* Page backdrop: two soft brand glows over a faint grid that fades out toward the bottom. */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(60rem 40rem at 10% -10%, var(--glow-a), transparent 60%),
+    radial-gradient(50rem 36rem at 95% 0%, var(--glow-b), transparent 60%);
+}
+.backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 30%, transparent 80%);
+}
+
+/* Highlighter: the "stamp" accent behind a few words. */
 .mark {
   background: var(--mark);
   color: var(--mark-ink);
-  padding: 0 0.15em;
+  padding: 0 0.2em;
+  border-radius: 0.2em;
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
 }
 
-/* Dashed rules on receipt-style blocks only (plan 1.5). */
+/* Gradient text for display accents (static; animated version is <GradientText>). */
+.text-gradient {
+  background: linear-gradient(100deg, var(--brand), var(--brand-3) 55%, var(--brand-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Glow ring used by featured cards and primary buttons. */
+.glow {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--brand) 35%, transparent),
+    0 8px 40px -8px color-mix(in srgb, var(--brand) 45%, transparent);
+}
+.glow-yes {
+  box-shadow: 0 8px 30px -10px color-mix(in srgb, var(--yes) 70%, transparent);
+}
+.glow-no {
+  box-shadow: 0 8px 30px -10px color-mix(in srgb, var(--no) 70%, transparent);
+}
+
+/* Receipt blocks keep their dashed rules — the product's signature. */
 .receipt-rule {
   border-top: 1px dashed var(--rule-strong);
 }
 
-/* Price flash: 600ms tint on the changed number, off under reduced motion (plan 1.5). */
+/* Price flash on change (600ms), off under reduced motion. */
 @keyframes flash-yes {
   from {
-    background: var(--yes-bg);
+    background: color-mix(in srgb, var(--yes) 30%, transparent);
   }
   to {
     background: transparent;
@@ -146,7 +220,7 @@
 }
 @keyframes flash-no {
   from {
-    background: var(--no-bg);
+    background: color-mix(in srgb, var(--no) 30%, transparent);
   }
   to {
     background: transparent;
@@ -160,7 +234,10 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .flash-up,
-  .flash-down {
-    animation: none;
+  .flash-down,
+  .animate-star-movement-bottom,
+  .animate-star-movement-top,
+  .animate-pulse-dot {
+    animation: none !important;
   }
 }
