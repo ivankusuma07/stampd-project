@@ -1,0 +1,5 @@
+next-env.d.ts
+*.tsbuildinfo
+e2e-screens/
+test-results/
+playwright-report/
