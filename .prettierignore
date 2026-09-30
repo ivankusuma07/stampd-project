@@ -1,0 +1,5 @@
+pnpm-lock.yaml
+packages/chain/src/abis/
+packages/contracts/out/
+packages/contracts/cache/
+*.md

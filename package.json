@@ -1,0 +1,22 @@
+{
+  "name": "stampd",
+  "private": true,
+  "packageManager": "pnpm@11.10.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "verify": "turbo run typecheck test --concurrency=1 && pnpm --filter @stampd/contracts forge:test && node scripts/check-copy.mjs && pnpm --filter @stampd/ui check:bits",
+    "format": "prettier --write .",
+    "dev:local": "pnpm --filter @stampd/worker local -- --seed"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2",
+    "turbo": "^2.11.5",
+    "typescript": "~5.9.3"
+  }
+}

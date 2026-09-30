@@ -1,0 +1,26 @@
+node_modules/
+.turbo/
+dist/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+.DS_Store
+
+# Foundry
+packages/contracts/out/
+packages/contracts/cache/
+packages/contracts/broadcast/*/31337/
+packages/contracts/lib/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+apps/scraper/data/
+packages/contracts/deployments/31337.json
+packages/db/src/generated/
+.local/
