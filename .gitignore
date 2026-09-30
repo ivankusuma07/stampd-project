@@ -25,3 +25,5 @@ apps/scraper/data/
 packages/contracts/deployments/31337.json
 packages/db/src/generated/
 .local/
+
+.vercel
