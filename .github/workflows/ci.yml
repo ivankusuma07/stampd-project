@@ -1,0 +1,61 @@
+# Development plan 0.5: install, typecheck, tests, forge test (10k fuzz runs), Slither, and the
+# design/copy checks, on every pull request.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  typescript:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: foundry-rs/foundry-toolchain@v1
+      # anvil is used by the worker's indexer and pipeline tests; forge builds the artifacts they deploy
+      - run: pnpm --filter @stampd/contracts build
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: node scripts/check-copy.mjs
+      - run: pnpm --filter @stampd/ui check:bits
+      - run: NEXT_PUBLIC_CHAIN_ID=31337 pnpm --filter @stampd/web build
+
+  contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --filter @stampd/contracts
+      - uses: foundry-rs/foundry-toolchain@v1
+      - name: forge test (10,000 fuzz runs)
+        working-directory: packages/contracts
+        run: FOUNDRY_PROFILE=ci forge test
+      - name: quote vectors are up to date
+        run: git diff --exit-code packages/core/test/vectors/quotes.csv
+      - uses: astral-sh/setup-uv@v6
+      - name: Slither (fails on high severity)
+        working-directory: packages/contracts
+        run: uvx --from slither-analyzer slither . --config-file slither.config.json --fail-high
+
+  scraper:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - working-directory: apps/scraper
+        run: uv run --python 3.12 pytest -q
