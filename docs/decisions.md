@@ -104,3 +104,17 @@ app runs on Vercel.
 - **Contract deploys** go through `pnpm --filter @stampd/contracts deploy:chain`, which simulates by default and
   records addresses only on a real broadcast.
 - `apps/scraper/fly.toml` was removed. Railway has deprecated `railway.json` config-as-code, so the service settings live on the services themselves and are listed in the runbook.
+
+## D16 — AI judgement publishes markets without manual review (for now)
+
+Decided 1 Oct 2026 by the project owner, overriding the plan's rollout gate for auto-publish templates (B10a: switch a
+template on only at ≥ 95% AI–human agreement on ≥ 100 reviewed cases). The owner wants markets to flow without a
+human in the loop during the testnet phase.
+
+- The gate stays visible in Admin → templates, but the owner can **turn a template on early** after a confirmation.
+  The switch is audited like any other admin change and can be turned off at any time.
+- What auto-publishes is unchanged: only drafts that pass every hard validator, get an "approve" from both AI passes
+  with confidence ≥ 0.9, and fit an enabled template (today only `crypto-major-daily-close`, which the resolver bot can
+  settle on its own). Everything that fails a validator is still auto-rejected.
+- Drafts that don't fit a template stay in the review queue unpublished; nobody has to act on them.
+- Revisit before mainnet: measure agreement on a sample of published markets and keep the gate for new templates.

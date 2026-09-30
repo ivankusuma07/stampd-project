@@ -488,14 +488,25 @@ function Templates() {
               <td className="py-2 text-right">
                 <Button
                   variant={on ? "no" : "secondary"}
-                  disabled={!on && !ready}
                   onClick={async () => {
+                    // The ≥95% on ≥100 gate is advice, not a lock: the owner may switch a template on
+                    // early (docs/decisions.md D16), after an explicit confirmation.
+                    if (
+                      !on &&
+                      !ready &&
+                      !window.confirm(
+                        `Turn on ${id} before it has reached 95% agreement on 100 reviewed cases?
+
+Matching drafts will publish without human review. You can turn it off here at any time.`,
+                      )
+                    )
+                      return;
                     const enabled = on ? data.enabled.filter((x) => x !== id) : [...data.enabled, id];
                     await api("/admin/config/templates", { method: "PUT", json: { enabled } });
                     await qc.invalidateQueries({ queryKey: ["admin", "agreement"] });
                   }}
                 >
-                  {on ? "Turn off" : "Turn on"}
+                  {on ? "Turn off" : ready ? "Turn on" : "Turn on early"}
                 </Button>
               </td>
             </tr>
