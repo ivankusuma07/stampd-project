@@ -1,0 +1,24 @@
+{
+  "name": "@stampd/ai",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "live-check": "tsx --env-file=../../.env scripts/live-check.ts"
+  },
+  "dependencies": {
+    "@stampd/core": "workspace:*",
+    "zod": "^4.6.5",
+    "openai": "^7.25.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.0",
+    "vitest": "^4.1.11",
+    "tsx": "^4.23.15"
+  }
+}
