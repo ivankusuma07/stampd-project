@@ -4,13 +4,14 @@
 //
 //   pnpm --filter @stampd/contracts deploy:chain            # simulate only
 //   pnpm --filter @stampd/contracts deploy:chain --broadcast [--smoke] [--verify]
+//   pnpm --filter @stampd/contracts deploy:chain --broadcast --resume   # finish a broadcast that was cut off
 //
 // With --broadcast: deploys and wires roles, writes deployments/<chainId>.json, exports ABIs and
 // addresses to packages/chain, and sends the creator and resolver keys gas money from the deployer.
 // --smoke also opens a throwaway market and buys once (a real trade on the explorer).
 // --verify submits the sources to Blockscout afterwards; a verification failure doesn't undo the deploy.
 import { execFileSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
@@ -62,7 +63,20 @@ if (Number(balance) === 0) {
   process.exit(1);
 }
 
-run("forge", [...script, "--broadcast", "--slow", "--private-key", env.DEPLOYER_PRIVATE_KEY]);
+// --resume continues a cut-off broadcast from broadcast/…/run-latest.json. Forge reuses the gas limits it
+// planned, which can be too low hours later on an Arbitrum chain (the L1 data price moves); if a resumed
+// transaction runs out of gas, send the remaining ones with `cast send` (fresh estimates) instead.
+run("forge", [...script, "--broadcast", "--slow", ...(args.has("--resume") ? ["--resume"] : []), "--private-key", env.DEPLOYER_PRIVATE_KEY]);
+
+// Forge writes deployments/<chainId>.json while simulating, before anything is sent, so check that every
+// recorded address really holds code before exporting it to the apps.
+const deployment = JSON.parse(readFileSync(join(pkg, "deployments", `${chainId}.json`), "utf8"));
+for (const [name, address] of Object.entries(deployment.contracts)) {
+  if (out("cast", ["code", address, "--rpc-url", rpc]) === "0x") {
+    console.error(`${name} has no code at ${address} — the broadcast did not finish; rerun with --resume`);
+    process.exit(1);
+  }
+}
 run("node", ["scripts/export-abis.mjs"]);
 
 for (const k of ["CREATOR_ADDRESS", "RESOLVER_ADDRESS"]) {

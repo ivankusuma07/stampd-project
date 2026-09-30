@@ -1,0 +1,18 @@
+{
+  "chainId": 46630,
+  "contracts": {
+    "DemoUSD": "0xf16c78569a97B0bfED9aa6900E923f6F224b0597",
+    "MarketFactory": "0x5954Fd59Fc88Aa1FdC7f4710DB6bA4f19815EfA2",
+    "MarketHub": "0xb481764876992b1D70970FF22D6b04E21BB6444D",
+    "OutcomeTokens": "0x8a440a4f2425AD82c8D8Cf178C0561BdB03EbedA",
+    "Resolver": "0x9dCCE78575E8183953f9759CE73e8b3ef7529483"
+  },
+  "deployBlock": 126862739,
+  "roles": {
+    "admin": "0x9F220f524b978C45b246fde763b460FE3fAfd1bf",
+    "arbiter": "0x9F220f524b978C45b246fde763b460FE3fAfd1bf",
+    "creator": "0x01366783fD21c345b1bace7A77203ce15c24759c",
+    "faucetSigner": "0x64CFD173cdeE9e84E382cCeEadF97F8472C8C73b",
+    "resolver": "0x16D9d76ede51e6E22eF3BA1ACA3a83E823a44d6c"
+  }
+}
