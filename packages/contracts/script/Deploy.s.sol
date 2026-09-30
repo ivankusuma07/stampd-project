@@ -2,6 +2,7 @@
 pragma solidity 0.8.24;
 
 import {Script, console2} from "forge-std/Script.sol";
+import {VmSafe} from "forge-std/Vm.sol";
 import {DemoUSD} from "../src/DemoUSD.sol";
 import {OutcomeTokens} from "../src/OutcomeTokens.sol";
 import {MarketHub} from "../src/MarketHub.sol";
@@ -128,6 +129,11 @@ contract Deploy is Script {
         vm.serializeString(root, "roles", rolesJson);
         string memory json = vm.serializeString(root, "contracts", contractsJson);
 
+        // Only a real broadcast records addresses: a dry run's addresses were never deployed.
+        if (!vm.isContext(VmSafe.ForgeContext.ScriptBroadcast)) {
+            console2.log("dry run: deployments file not written");
+            return;
+        }
         string memory path = string.concat("deployments/", vm.toString(block.chainid), ".json");
         vm.writeJson(json, path);
         console2.log("wrote", path);
