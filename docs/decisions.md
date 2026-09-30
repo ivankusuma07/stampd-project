@@ -103,4 +103,4 @@ app runs on Vercel.
 - **IPv6 private network**: the api and scraper listen on `::`; ioredis connections use `family: 0`.
 - **Contract deploys** go through `pnpm --filter @stampd/contracts deploy:chain`, which simulates by default and
   records addresses only on a real broadcast.
-- `apps/scraper/fly.toml` was removed.
+- `apps/scraper/fly.toml` was removed. Railway has deprecated `railway.json` config-as-code, so the service settings live on the services themselves and are listed in the runbook.

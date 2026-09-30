@@ -53,15 +53,15 @@ Decided in docs/decisions.md D15. Ready-to-paste variables per service live in t
 `.env.railway.{api,worker,scraper}` and `.env.vercel.web` files at the repo root (regenerate them from `.env` if lost;
 never commit them).
 
-**Railway project** — one environment, these services:
+**Railway project `stampd`** (workspace "Ivan Kusuma Aulia's Projects", region US-West) — one environment, these services. Railway deprecated `railway.json`, so the build and deploy settings live on each service (set in the dashboard or with `railway api` → `serviceInstanceUpdate`):
 
 | Service | Source | Settings |
 |---|---|---|
 | Postgres | Railway template | — |
 | Redis | Railway template | — |
-| scraper | this repo, root directory `apps/scraper` | config file `apps/scraper/railway.json`; **volume at `/data`**; 1 replica; no public domain |
-| api | this repo, root directory `/` | config file `/apps/api/railway.json`; generate a public domain; 1+ replicas |
-| worker | this repo, root directory `/` | config file `/apps/worker/railway.json`; no public domain; **1 replica** |
+| scraper | this repo, root directory `/apps/scraper` | Dockerfile `Dockerfile`; health check `/livez`; restart always; **volume at `/data`**; 1 replica; no public domain |
+| api | this repo, root directory `/` | Dockerfile `apps/api/Dockerfile`; pre-deploy `pnpm --filter @stampd/db migrate:deploy`; health check `/health`; restart on failure; public domain on port 4000 |
+| worker | this repo, root directory `/` | Dockerfile `apps/worker/Dockerfile`; restart always; no public domain; **1 replica** |
 
 - The api runs `prisma migrate deploy` as its pre-deploy step, so the schema is current before new code serves traffic.
 - Services talk over the private network (`*.railway.internal`, IPv6): the api listens on `::` and every Redis client
