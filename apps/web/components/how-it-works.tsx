@@ -1,26 +1,21 @@
 "use client";
 
-import { FileSearch, Gavel, Receipt, TrendingUp } from "lucide-react";
 import { GradientText, SpotlightCard } from "@stampd/ui";
 
 const STEPS = [
   {
-    icon: FileSearch,
     title: "The call",
     body: "A KOL posts a dated, checkable prediction on X — or you paste one in. AI drafts the market; a human checks it.",
   },
   {
-    icon: TrendingUp,
     title: "The market",
     body: "It opens onchain as YES/NO. The price is the crowd's odds, and the rules are hashed onchain so they can't change.",
   },
   {
-    icon: Gavel,
     title: "The verdict",
     body: "At the deadline the resolver reads the named data source and proposes the result, with a dispute window and evidence.",
   },
   {
-    icon: Receipt,
     title: "The receipt",
     body: "Winners redeem 1.00 per share. The KOL's record updates: hit rate, and edge — how much they beat the crowd.",
   },
@@ -31,14 +26,9 @@ export function HowItWorks() {
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       {STEPS.map((s, i) => (
         <SpotlightCard key={s.title} className="h-full p-6">
-          <div className="flex items-center justify-between">
-            <span className="grid h-11 w-11 place-items-center rounded-xl border border-rule-strong bg-surface-2 text-accent">
-              <s.icon size={20} strokeWidth={1.75} aria-hidden />
-            </span>
-            <GradientText className="font-display text-4xl font-extrabold" animationSpeed={6}>
-              {`0${i + 1}`}
-            </GradientText>
-          </div>
+          <GradientText className="mx-0! font-display text-4xl font-extrabold" animationSpeed={6}>
+            {`0${i + 1}`}
+          </GradientText>
           <h3 className="mt-5 font-display text-lg font-bold text-ink">{s.title}</h3>
           <p className="mt-2 text-sm leading-relaxed text-ink-2">{s.body}</p>
         </SpotlightCard>
