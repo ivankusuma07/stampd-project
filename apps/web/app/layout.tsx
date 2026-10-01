@@ -7,6 +7,7 @@ import { Header } from "@/components/header";
 import { Ticker } from "@/components/ticker";
 import { Logo } from "@/components/logo";
 import { XFooterLink } from "@/components/x-link";
+import { BlockNumber } from "@/components/header";
 import { serverGet } from "@/lib/api";
 import type { Status } from "@/lib/types";
 import "./globals.css";
@@ -52,7 +53,10 @@ function Footer() {
             Demo money only: dUSD has no value and can&apos;t be cashed out. Nothing here is financial advice. Markets are
             drafted from public posts on X and settled from the data source named in each market&apos;s rules.
           </p>
-          <p className="font-mono text-xs text-ink-3">Settled onchain · Robinhood Chain</p>
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="font-mono text-xs text-ink-3">Settled onchain · Robinhood Chain</p>
+            <BlockNumber />
+          </div>
           <XFooterLink />
         </div>
         <ul className="space-y-2">

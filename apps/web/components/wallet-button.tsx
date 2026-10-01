@@ -20,7 +20,7 @@ export function WalletButton({
 }: {
   label?: string;
   showChain?: boolean;
-  /** header use: on very narrow phones the label shortens to "Connect" so the button still fits */
+  /** header use: on very narrow phones the label shortens to "Connect" and the address pill drops its arrow, so it fits */
   compact?: boolean;
 }) {
   return (
@@ -76,11 +76,18 @@ export function WalletButton({
             <button
               type="button"
               onClick={openAccountModal}
-              className={`${base} border border-brand/40 bg-surface/60 font-mono text-ink hover:border-brand`}
+              className={`${base} border border-brand/40 bg-surface/60 font-mono text-ink hover:border-brand ${compact ? "max-[400px]:px-3" : ""}`}
             >
               <Wallet size={16} className="text-accent" aria-hidden />
-              {account.displayName}
-              <ChevronDown size={14} className="text-ink-3" aria-hidden />
+              {compact ? (
+                <>
+                  <span className="max-[400px]:hidden">{account.displayName}</span>
+                  <span className="hidden max-[400px]:inline">{`${account.address.slice(0, 4)}…${account.address.slice(-4)}`}</span>
+                </>
+              ) : (
+                account.displayName
+              )}
+              <ChevronDown size={14} className={`text-ink-3 ${compact ? "max-[400px]:hidden" : ""}`} aria-hidden />
             </button>
           </span>
         );

@@ -23,6 +23,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Searc
           id="q"
           name="q"
           defaultValue={term}
+          autoFocus={!term}
           placeholder="Search markets and KOLs"
           className="h-10 flex-1 rounded-xl border border-rule-strong bg-surface px-3"
         />

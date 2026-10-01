@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useBlockNumber } from "wagmi";
 import { WalletButton } from "./wallet-button";
@@ -18,16 +18,17 @@ const NAV = [
   { href: "/kols", label: "KOLs" },
   { href: "/callouts", label: "Callouts" },
   { href: "/submit", label: "Submit" },
+  { href: "/faucet", label: "Faucet" },
   { href: "/portfolio", label: "Portfolio" },
   { href: "/insights", label: "Insights" },
 ];
 
-/** Live Robinhood Chain block number (plan B8 "Global"). */
-function BlockNumber() {
+/** Live Robinhood Chain block number (plan B8 "Global"). Lives in the footer: the header has no room. */
+export function BlockNumber() {
   const { data } = useBlockNumber({ watch: true });
   return (
     <span
-      className="hidden items-center gap-2 rounded-full border border-rule bg-surface/60 px-3 py-1.5 font-mono text-xs whitespace-nowrap text-ink-2 2xl:inline-flex"
+      className="inline-flex items-center gap-2 rounded-full border border-rule bg-surface/60 px-3 py-1.5 font-mono text-xs whitespace-nowrap text-ink-2"
       title="Latest Robinhood Chain block"
     >
       <LiveDot />
@@ -73,30 +74,17 @@ function ThemeToggle() {
   );
 }
 
-function SearchBox() {
-  const router = useRouter();
-  const [q, setQ] = useState("");
+/** Search as an icon (the search page has the box): a text field doesn't fit next to an 8-item menu. */
+function SearchLink() {
   return (
-    <form
-      role="search"
-      onSubmit={(e) => {
-        e.preventDefault();
-        if (q.trim()) router.push(`/search?q=${encodeURIComponent(q.trim())}`);
-      }}
-      className="relative hidden xl:block"
+    <Link
+      href="/search"
+      aria-label="Search markets and KOLs"
+      title="Search"
+      className="hidden h-10 w-10 shrink-0 place-items-center rounded-full border border-rule bg-surface/60 text-ink-2 transition hover:border-rule-strong hover:text-ink sm:grid"
     >
-      <label htmlFor="site-search" className="sr-only">
-        Search markets and KOLs
-      </label>
-      <Search size={14} strokeWidth={1.5} className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-ink-3" aria-hidden />
-      <input
-        id="site-search"
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-        placeholder="Search"
-        className="h-10 w-40 rounded-full border border-rule bg-surface/60 pr-3 pl-9 text-sm placeholder:text-ink-3 focus:border-brand/50 2xl:w-52"
-      />
-    </form>
+      <Search size={17} strokeWidth={1.75} aria-hidden />
+    </Link>
   );
 }
 
@@ -106,9 +94,9 @@ export function Header() {
   const nav = isAdmin ? [...NAV, { href: "/admin", label: "Admin" }] : NAV;
   return (
     <header className="sticky top-0 z-30 border-b border-rule bg-paper/70 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-7xl items-center gap-5 px-4 lg:px-6">
+      <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:gap-5 lg:px-6">
         <Logo />
-        <nav aria-label="Main" className="hidden items-center gap-1 rounded-full border border-rule bg-surface/50 p-1 lg:flex">
+        <nav aria-label="Main" className="hidden items-center gap-1 rounded-full border border-rule bg-surface/50 p-1 xl:flex">
           {nav.map((n) => {
             const active = pathname.startsWith(n.href);
             return (
@@ -116,7 +104,7 @@ export function Header() {
                 key={n.href}
                 href={n.href}
                 aria-current={active ? "page" : undefined}
-                className={`rounded-full px-3 py-1.5 text-sm whitespace-nowrap transition ${active ? "bg-brand font-semibold text-brand-ink shadow-[0_0_20px_-6px_var(--brand)]" : "text-ink-2 hover:text-ink"}`}
+                className={`rounded-full px-2.5 py-1.5 text-sm whitespace-nowrap transition xl:px-3 ${active ? "bg-brand font-semibold text-brand-ink shadow-[0_0_20px_-6px_var(--brand)]" : "text-ink-2 hover:text-ink"}`}
               >
                 {n.label}
               </Link>
@@ -124,15 +112,14 @@ export function Header() {
           })}
         </nav>
         <div className="ml-auto flex shrink-0 items-center gap-2 whitespace-nowrap">
-          <BlockNumber />
-          <SearchBox />
-          <XIconButton display="hidden sm:grid" />
+          <SearchLink />
+          <XIconButton display="hidden xl:grid" />
           <ThemeToggle />
           <NotificationBell />
-          <WalletButton showChain compact />
+          <WalletButton compact />
         </div>
       </div>
-      <nav aria-label="Main (mobile)" className="flex gap-1.5 overflow-x-auto border-t border-rule px-4 py-2 lg:hidden">
+      <nav aria-label="Main (mobile)" className="flex gap-1.5 overflow-x-auto border-t border-rule px-4 py-2 xl:hidden">
         {nav.map((n) => (
           <Link
             key={n.href}

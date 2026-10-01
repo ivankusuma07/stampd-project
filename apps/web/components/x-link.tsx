@@ -15,7 +15,7 @@ export function XLogo({ size = 16, className }: { size?: number; className?: str
 
 /**
  * Round icon button, same size and style as the header's theme toggle. `display` sets the CSS display
- * (default "grid"); the header passes "hidden sm:grid" to keep phones roomy.
+ * (default "grid"); the header passes "hidden xl:grid" so narrower screens keep room for the menu (the footer always has it).
  */
 export function XIconButton({ display = "grid" }: { display?: string }) {
   if (!X_URL) return null;
