@@ -128,6 +128,15 @@ describe("routing (plan B10a)", () => {
     expect(d.route).toBe("REVIEW");
   });
 
+  it("auto-publishes at the owner's 0.75 confidence bar (D16) and not below it", () => {
+    const sure = { ...good, confidence: 0.8 };
+    expect(routeDraft({ claim: sure, check: approve, validation: validateClaim(sure, ctx), enabledTemplates: all }).route).toBe("AUTO_PUBLISH");
+    const unsure = { ...good, confidence: 0.7 };
+    const d = routeDraft({ claim: unsure, check: approve, validation: validateClaim(unsure, ctx), enabledTemplates: all });
+    expect(d.route).toBe("REVIEW");
+    expect(d.reasons.join(" ")).toMatch(/confidence 0.7 < 0.75/);
+  });
+
   it("sends off-allowlist claims (e.g. politics) to review, not rejection", () => {
     const claim: ExtractedClaim = { ...good, category: "politics", subject: "ELECTION", resolution_source: "" };
     const d = routeDraft({ claim, check: approve, validation: validateClaim(claim, ctx), enabledTemplates: all });

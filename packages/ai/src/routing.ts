@@ -14,7 +14,8 @@ import { matchTemplate, type ValidationResult } from "./validators";
  */
 export type Route = "AUTO_PUBLISH" | "REVIEW" | "AUTO_REJECT";
 
-export const AUTO_PUBLISH_MIN_CONFIDENCE = 0.9;
+/** Owner's choice for AI-only publishing (docs/decisions.md D16): 0.75, together with an "approve" from the check pass. */
+export const AUTO_PUBLISH_MIN_CONFIDENCE = 0.75;
 export const AUTO_REJECT_MIN_CONFIDENCE = 0.8;
 
 export type RoutingInput = {

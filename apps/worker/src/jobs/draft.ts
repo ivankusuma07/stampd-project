@@ -2,6 +2,8 @@ import { questionHash, type XPost } from "@stampd/core";
 import {
   buildSpec,
   type AiCallLog,
+  type CheckResult,
+  type ExtractedClaim,
   type ClaimAi,
   routeDraft,
   validateClaim,
@@ -83,13 +85,7 @@ export async function draftPost(d: DraftDeps, job: JobMap["ai.draft"]): Promise<
     return { predictionId: p.id, route: "REVIEW" };
   }
 
-  const deadline = claim.deadline_utc ? new Date(claim.deadline_utc) : null;
-  const hash = deadline && !Number.isNaN(deadline.getTime()) ? questionHash(buildSpec(claim, xpost, deadline)) : null;
-  const duplicate =
-    (await d.db.market.count({
-      where: { OR: [{ sourcePostId: post.xPostId }, ...(hash ? [{ questionHash: hash }] : [])] },
-    })) > 0;
-  const validation = validateClaim(claim, { now, kolExcluded: post.kol?.excluded ?? false, isDuplicate: duplicate });
+  const { deadline, validation } = await validate(d.db, post, xpost, claim, now);
 
   // Skip the second call when code already rules the draft out.
   const check = validation.hard.length === 0 ? await ai.check(xpost, claim, now) : null;
@@ -126,6 +122,75 @@ export async function draftPost(d: DraftDeps, job: JobMap["ai.draft"]): Promise<
   if (job.submissionId) await linkSubmission(d, job.submissionId, p.id, status, p.reviewReason);
   if (decision.route === "AUTO_PUBLISH") await d.enqueue("market.create", { predictionId: p.id }, { jobId: `create:${p.id}` });
   return { predictionId: p.id, route: decision.route };
+}
+
+/** Code validators for a claim: deadline, duplicate market (same post or same question), exclusions. */
+async function validate(
+  db: PrismaClient,
+  post: { xPostId: string; kol: { excluded: boolean } | null },
+  xpost: XPost,
+  claim: ExtractedClaim,
+  now: Date,
+) {
+  const deadline = claim.deadline_utc ? new Date(claim.deadline_utc) : null;
+  const hash = deadline && !Number.isNaN(deadline.getTime()) ? questionHash(buildSpec(claim, xpost, deadline)) : null;
+  const duplicate =
+    (await db.market.count({
+      where: { OR: [{ sourcePostId: post.xPostId }, ...(hash ? [{ questionHash: hash }] : [])] },
+    })) > 0;
+  const validation = validateClaim(claim, { now, kolExcluded: post.kol?.excluded ?? false, isDuplicate: duplicate });
+  return { deadline, validation };
+}
+
+export type RerouteDeps = Pick<DraftDeps, "db" | "enabledTemplates" | "enqueue" | "now">;
+
+/**
+ * Re-run routing for drafts waiting in review, with their stored AI answers (no new AI calls), after
+ * the auto-publish bar or the enabled templates change. It only ever publishes: a draft that no longer
+ * qualifies (e.g. its deadline passed) is left where it is.
+ */
+export async function rerouteWaiting(d: RerouteDeps): Promise<{ checked: number; published: string[]; waitingForTemplate: number }> {
+  const now = d.now?.() ?? new Date();
+  const enabled = await d.enabledTemplates();
+  const waiting = await d.db.prediction.findMany({
+    where: { status: "IN_REVIEW", humanDecision: null },
+    include: { post: { include: { kol: true } } },
+  });
+  const published: string[] = [];
+  let waitingForTemplate = 0;
+  for (const p of waiting) {
+    const claim = p.extracted as unknown as ExtractedClaim | null;
+    const check = p.check as unknown as CheckResult | null;
+    if (!claim || !check) continue; // needs both AI passes on record
+    const xpost: XPost = {
+      id: p.post.xPostId,
+      authorId: p.post.authorId,
+      authorHandle: p.post.authorHandle,
+      text: p.post.text,
+      createdAt: p.post.postedAt.toISOString(),
+      url: p.post.url,
+    };
+    const { deadline, validation } = await validate(d.db, p.post, xpost, claim, now);
+    const decision = routeDraft({ claim, check, validation, enabledTemplates: enabled });
+    if (decision.aiDecision === "AUTO_PUBLISH" && decision.route !== "AUTO_PUBLISH") waitingForTemplate++;
+    if (decision.route !== "AUTO_PUBLISH" || !deadline) continue;
+    await d.db.prediction.update({
+      where: { id: p.id },
+      data: {
+        status: "APPROVED",
+        route: "AUTO_PUBLISH",
+        aiDecision: decision.aiDecision,
+        template: decision.template,
+        spec: buildSpec(claim, xpost, deadline) as unknown as Prisma.InputJsonValue,
+        seedAmount: AUTO_DEFAULTS.seed.toString(),
+        openingPriceBps: AUTO_DEFAULTS.openingPriceBps,
+        feeBps: AUTO_DEFAULTS.feeBps,
+      },
+    });
+    await d.enqueue("market.create", { predictionId: p.id }, { jobId: `create:${p.id}` });
+    published.push(p.id);
+  }
+  return { checked: waiting.length, published, waitingForTemplate };
 }
 
 function reasonText(codes: string[]): string {

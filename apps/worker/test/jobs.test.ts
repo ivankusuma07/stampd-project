@@ -12,7 +12,7 @@ import {
   scheduleTimelines,
   type IngestDeps,
 } from "../src/jobs/ingest";
-import { draftPost, type DraftDeps } from "../src/jobs/draft";
+import { draftPost, rerouteWaiting, type DraftDeps } from "../src/jobs/draft";
 import { fanout } from "../src/jobs/notify";
 import { computeEdgeInputs, computeKolStats } from "../src/jobs/stats";
 import { ScraperUnavailable, type ScraperHealth } from "../src/lib/scraper";
@@ -278,6 +278,36 @@ describe("ai.draft (plan B10a)", () => {
     expect(pred).toMatchObject({ status: "IN_REVIEW", aiDecision: "AUTO_PUBLISH", template: "crypto-major-daily-close" });
     expect(await db.aiCall.count({ where: { predictionId: pred.id } })).toBe(2);
     expect(h.jobs).toEqual([]);
+  });
+
+  it("reroute publishes waiting drafts once their template is on, with no new AI calls", async () => {
+    const p = await seedPost();
+    const off = draftHarness(claim, approve);
+    const r = await draftPost(off.deps, { postId: p.id, source: "TIMELINE" });
+    expect(r!.route).toBe("REVIEW");
+    const aiCalls = await db.aiCall.count();
+
+    const still = await rerouteWaiting(off.deps);
+    expect(still).toMatchObject({ checked: 1, published: [], waitingForTemplate: 1 });
+
+    const on = draftHarness(claim, approve, ["crypto-major-daily-close"]);
+    const res = await rerouteWaiting(on.deps);
+    expect(res.published).toEqual([r!.predictionId]);
+    const pred = await db.prediction.findUniqueOrThrow({ where: { id: r!.predictionId } });
+    expect(pred).toMatchObject({ status: "APPROVED", route: "AUTO_PUBLISH" });
+    expect((pred.spec as unknown as MarketSpec).closeTime).toBe("2027-03-31T23:59:59.000Z");
+    expect(on.jobs).toEqual([{ name: "market.create", data: { predictionId: pred.id } }]);
+    expect(await db.aiCall.count()).toBe(aiCalls);
+    expect((await rerouteWaiting(on.deps)).published).toEqual([]); // nothing left to publish
+  });
+
+  it("reroute leaves drafts the check pass did not approve", async () => {
+    const p = await seedPost();
+    const h = draftHarness(claim, { ...approve, verdict: "review" }, ["crypto-major-daily-close"]);
+    const r = await draftPost(h.deps, { postId: p.id, source: "TIMELINE" });
+    expect(r!.route).toBe("REVIEW");
+    expect((await rerouteWaiting(h.deps)).published).toEqual([]);
+    expect((await db.prediction.findUniqueOrThrow({ where: { id: r!.predictionId } })).status).toBe("IN_REVIEW");
   });
 
   it("auto-publishes an enabled template and enqueues market creation", async () => {

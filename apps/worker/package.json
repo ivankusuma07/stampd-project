@@ -12,7 +12,8 @@
     "test": "vitest run",
     "indexer:reconcile": "tsx --env-file-if-exists=../../.env src/cli.ts reconcile",
     "local": "tsx scripts/local-stack.ts",
-    "redraft": "tsx --env-file-if-exists=../../.env src/cli.ts redraft"
+    "redraft": "tsx --env-file-if-exists=../../.env src/cli.ts redraft",
+    "reroute": "tsx --env-file-if-exists=../../.env src/cli.ts reroute"
   },
   "dependencies": {
     "@stampd/ai": "workspace:*",

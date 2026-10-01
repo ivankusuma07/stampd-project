@@ -4,9 +4,14 @@
 //   pnpm --filter @stampd/worker redraft --since <ISO time>
 //       queue AI drafts for stored posts that pass the prefilter but have no prediction yet
 //       (e.g. posts stored while drafting was failing). Job ids are deterministic, so nothing doubles.
+//   pnpm --filter @stampd/worker reroute
+//       re-run routing for drafts waiting in review with their stored AI answers (no new AI calls),
+//       publishing the ones that now qualify (after the auto-publish bar or enabled templates change)
 import { getDb } from "@stampd/db";
 import { prefilter } from "@stampd/ai";
-import { enqueue, getQueue } from "@stampd/queue";
+import { enqueue, getQueue, redisConnection, STATUS_KEYS } from "@stampd/queue";
+import { TEMPLATES, type TemplateId } from "@stampd/ai";
+import { rerouteWaiting } from "./jobs/draft";
 import { getDeployment, publicClientFor } from "@stampd/chain";
 import { Indexer } from "./indexer/indexer";
 import { reconcile } from "./indexer/maintenance";
@@ -45,8 +50,19 @@ if (command === "backfill") {
   }
   console.log(`${posts.length} undrafted posts since ${since.toISOString()} · ${queued} passed the prefilter and were queued`);
   await getQueue().close();
+} else if (command === "reroute") {
+  const redis = redisConnection();
+  const enabledTemplates = async () =>
+    new Set(((await redis.get(STATUS_KEYS.autoPublishTemplates)) ?? "").split(",").filter((t): t is TemplateId => t in TEMPLATES));
+  const r = await rerouteWaiting({ db, enabledTemplates, enqueue });
+  console.log(
+    `${r.checked} drafts waiting · ${r.published.length} published now` +
+      (r.waitingForTemplate ? ` · ${r.waitingForTemplate} qualify but their template is switched off (Admin → templates)` : ""),
+  );
+  await getQueue().close();
+  await redis.quit();
 } else {
-  console.error("usage: cli.ts backfill | reconcile | redraft --since <ISO time>");
+  console.error("usage: cli.ts backfill | reconcile | redraft --since <ISO time> | reroute");
   process.exitCode = 1;
 }
 await db.$disconnect();

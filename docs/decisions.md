@@ -117,6 +117,10 @@ human in the loop during the testnet phase.
   with confidence ≥ 0.9, and fit an enabled template (today only `crypto-major-daily-close`, which the resolver bot can
   settle on its own). Everything that fails a validator is still auto-rejected.
 - Drafts that don't fit a template stay in the review queue unpublished; nobody has to act on them.
+- **Confidence bar lowered to 0.75** (1 Oct 2026, on mainnet). At 0.9 none of the first mainnet crypto drafts qualified
+  (extraction confidence 0.55 to 0.85 on posts that leave the exact level or date implicit), so the board stayed empty.
+  The check pass must still say "approve". `pnpm --filter @stampd/worker reroute` re-routes drafts already waiting in
+  review with their stored AI answers (no new AI calls) after the bar or the enabled templates change.
 - Revisit before mainnet: measure agreement on a sample of published markets and keep the gate for new templates.
 
 ## D17 — Admins can delist a market
