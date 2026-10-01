@@ -9,6 +9,7 @@ import { Moon, Search, Sun } from "lucide-react";
 import { formatInt } from "@stampd/core";
 import { LiveDot } from "@stampd/ui";
 import { Logo } from "./logo";
+import { XIconButton } from "./x-link";
 import { NotificationBell } from "./notifications";
 import { useSession } from "./providers";
 
@@ -125,6 +126,7 @@ export function Header() {
         <div className="ml-auto flex shrink-0 items-center gap-2 whitespace-nowrap">
           <BlockNumber />
           <SearchBox />
+          <XIconButton display="hidden sm:grid" />
           <ThemeToggle />
           <NotificationBell />
           <WalletButton showChain compact />

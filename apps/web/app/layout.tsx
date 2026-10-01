@@ -6,6 +6,7 @@ import { Providers } from "@/components/providers";
 import { Header } from "@/components/header";
 import { Ticker } from "@/components/ticker";
 import { Logo } from "@/components/logo";
+import { XFooterLink } from "@/components/x-link";
 import { serverGet } from "@/lib/api";
 import type { Status } from "@/lib/types";
 import "./globals.css";
@@ -52,6 +53,7 @@ function Footer() {
             drafted from public posts on X and settled from the data source named in each market&apos;s rules.
           </p>
           <p className="font-mono text-xs text-ink-3">Settled onchain · Robinhood Chain</p>
+          <XFooterLink />
         </div>
         <ul className="space-y-2">
           <li className="text-xs font-semibold tracking-[0.2em] text-ink-3 uppercase">Protocol</li>
