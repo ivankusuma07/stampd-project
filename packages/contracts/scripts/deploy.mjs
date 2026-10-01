@@ -5,6 +5,7 @@
 //   pnpm --filter @stampd/contracts deploy:chain            # simulate only
 //   pnpm --filter @stampd/contracts deploy:chain --broadcast [--smoke] [--verify]
 //   pnpm --filter @stampd/contracts deploy:chain --broadcast --resume   # finish a broadcast that was cut off
+//   add --env ../../.env.mainnet to use the mainnet keys and RPC instead of the root .env
 //
 // With --broadcast: deploys and wires roles, writes deployments/<chainId>.json, exports ABIs and
 // addresses to packages/chain, and sends the creator and resolver keys gas money from the deployer.
@@ -17,10 +18,17 @@ import { dirname, join } from "node:path";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const pkg = join(here, "..");
-const rootEnv = join(pkg, "..", "..", ".env");
-if (existsSync(rootEnv)) process.loadEnvFile(rootEnv);
+// --env <file> picks the env file (e.g. ../../.env.mainnet); default is the root .env (testnet).
+const argv = process.argv.slice(2);
+const envArg = argv.indexOf("--env");
+const envFile = envArg >= 0 ? join(process.cwd(), argv[envArg + 1] ?? "") : join(pkg, "..", "..", ".env");
+if (envArg >= 0 && !existsSync(envFile)) {
+  console.error(`env file not found: ${envFile}`);
+  process.exit(1);
+}
+if (existsSync(envFile)) process.loadEnvFile(envFile);
 
-const args = new Set(process.argv.slice(2));
+const args = new Set(argv);
 const broadcast = args.has("--broadcast");
 const env = process.env;
 const GAS_TOPUP_ETH = env.GAS_TOPUP_ETH ?? "0.005";
