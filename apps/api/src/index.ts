@@ -19,7 +19,9 @@ const app = await buildServer({
   chain: publicClientFor(env.CHAIN_ID, [env.RPC_URL, env.RPC_URL_BACKUP]),
   bus: createBus(env.REDIS_URL),
   enqueue: (name, data, opts) => enqueue(name, data, opts),
-  verifyCaptcha: (token, ip) => verifyTurnstile(env.TURNSTILE_SECRET, token, ip),
+  // The faucet widget runs on the web domain (SIWE_DOMAIN, minus any port) with action "faucet".
+  verifyCaptcha: (token, ip) =>
+    verifyTurnstile(env.TURNSTILE_SECRET, token, ip, { hostname: env.SIWE_DOMAIN.split(":")[0], action: "faucet" }),
   now: () => new Date(),
 });
 

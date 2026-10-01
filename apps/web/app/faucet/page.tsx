@@ -21,7 +21,13 @@ import { PageHeader } from "@/components/page-header";
 
 declare global {
   interface Window {
-    turnstile?: { render: (el: HTMLElement, opts: { sitekey: string; callback: (token: string) => void; theme?: string }) => string; reset: (id?: string) => void };
+    turnstile?: {
+      render: (
+        el: HTMLElement,
+        opts: { sitekey: string; callback: (token: string) => void; "expired-callback"?: () => void; theme?: string; action?: string },
+      ) => string;
+      reset: (id?: string) => void;
+    };
   }
 }
 
@@ -295,7 +301,14 @@ function Claim({ claimUsd, hasGas, onClaimed }: { claimUsd?: number; hasGas: boo
   const renderWidget = () => {
     if (!SITE_KEY || rendered.current || !widget.current || !window.turnstile) return;
     rendered.current = true;
-    window.turnstile.render(widget.current, { sitekey: SITE_KEY, callback: setToken });
+    window.turnstile.render(widget.current, {
+      sitekey: SITE_KEY,
+      action: "faucet", // the API checks this (and the hostname) on Siteverify
+      theme: document.documentElement.dataset.theme === "light" ? "light" : "dark",
+      callback: setToken,
+      // tokens expire after 5 minutes: drop it so the button waits for a fresh one
+      "expired-callback": () => setToken(null),
+    });
   };
   useEffect(renderWidget);
 
