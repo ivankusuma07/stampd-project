@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useBlockNumber } from "wagmi";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { WalletButton } from "./wallet-button";
 import { Moon, Search, Sun } from "lucide-react";
 import { formatInt } from "@stampd/core";
 import { LiveDot } from "@stampd/ui";
@@ -127,7 +127,7 @@ export function Header() {
           <SearchBox />
           <ThemeToggle />
           <NotificationBell />
-          <ConnectButton chainStatus="icon" accountStatus="address" showBalance={false} />
+          <WalletButton showChain compact />
         </div>
       </div>
       <nav aria-label="Main (mobile)" className="flex gap-1.5 overflow-x-auto border-t border-rule px-4 py-2 lg:hidden">

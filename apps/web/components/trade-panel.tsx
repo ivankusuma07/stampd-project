@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAccount, useConfig, useReadContract, useSwitchChain, useWriteContract } from "wagmi";
 import { waitForTransactionReceipt } from "wagmi/actions";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { WalletButton } from "./wallet-button";
 import { demoUSDAbi, marketHubAbi, outcomeTokensAbi } from "@stampd/chain";
 import {
   BPS,
@@ -311,7 +311,7 @@ export function TradePanel({ market }: { market: Market }) {
 
         {!isConnected ? (
           <div className="flex justify-center">
-            <ConnectButton label="Connect wallet to trade" />
+            <WalletButton label="Connect wallet to trade" />
           </div>
         ) : wrongChain ? (
           <Button className="w-full" onClick={() => switchChain({ chainId: CHAIN_ID })}>

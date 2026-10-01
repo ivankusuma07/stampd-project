@@ -8,7 +8,6 @@ import {
   RainbowKitAuthenticationProvider,
   RainbowKitProvider,
   createAuthenticationAdapter,
-  lightTheme,
   darkTheme,
   type AuthenticationStatus,
 } from "@rainbow-me/rainbowkit";
@@ -74,10 +73,9 @@ function Auth({ children }: { children: ReactNode }) {
     [qc],
   );
 
-  const theme = {
-    lightMode: lightTheme({ accentColor: "#16140F", accentColorForeground: "#F6F4EE", borderRadius: "small", fontStack: "system" }),
-    darkMode: darkTheme({ accentColor: "#F2EFE6", accentColorForeground: "#12110F", borderRadius: "small", fontStack: "system" }),
-  };
+  // The wallet modal is always dark with the brand lime accent (tokens.css --brand / --brand-ink): STAMPD is
+  // dark-first, and RainbowKit's light/dark pair follows the OS setting, which put lime text on white.
+  const theme = darkTheme({ accentColor: "#c8ff2e", accentColorForeground: "#0a0c07", borderRadius: "large", fontStack: "system" });
 
   return (
     <RainbowKitAuthenticationProvider adapter={adapter} status={status}>

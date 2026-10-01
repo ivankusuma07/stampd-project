@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAccount, useBalance, useConfig, useReadContract, useSwitchChain, useWriteContract } from "wagmi";
 import { waitForTransactionReceipt } from "wagmi/actions";
 import { formatEther } from "viem";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { WalletButton } from "@/components/wallet-button";
 import { AlertTriangle, ArrowRight, ArrowUpRight, Check, Plus } from "lucide-react";
 import { demoUSDAbi } from "@stampd/chain";
 import { formatDateTimeUtc, formatUsd } from "@stampd/core";
@@ -89,7 +89,7 @@ export default function FaucetPage() {
       {!isConnected ? (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-rule bg-surface/70 px-5 py-4 backdrop-blur">
           <p className="text-sm text-ink-2">Connect your wallet to see your balances.</p>
-          <ConnectButton />
+          <WalletButton />
         </div>
       ) : null}
 

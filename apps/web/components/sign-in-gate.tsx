@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useAccount } from "wagmi";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { WalletButton } from "./wallet-button";
 import { useSession } from "./providers";
 
 /** Renders children only for a signed-in wallet; otherwise explains what signing in does. */
@@ -18,7 +18,7 @@ export function SignInGate({ children, why }: { children: ReactNode; why: string
         {why} Signing in is a free signature: no transaction, no gas.
       </p>
       <div className="mt-4 flex justify-center">
-        <ConnectButton />
+        <WalletButton />
       </div>
     </div>
   );
