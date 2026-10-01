@@ -46,14 +46,17 @@ function Auth({ children }: { children: ReactNode }) {
     () =>
       createAuthenticationAdapter({
         getNonce: async () => (await api<{ nonce: string }>("/auth/nonce")).nonce,
-        createMessage: ({ nonce, address: addr, chainId }) =>
+        // chainId is always STAMPD's chain, not the wallet's current network: MetaMask keeps a network per
+        // site, and a wallet still on Ethereum produced a chain-1 message the API rejects. Signing is
+        // chain-agnostic; trading still asks the wallet to switch.
+        createMessage: ({ nonce, address: addr }) =>
           createSiweMessage({
             domain: window.location.host,
             address: addr as `0x${string}`,
             statement: "Sign in to STAMPD. This costs nothing and sends no transaction.",
             uri: window.location.origin,
             version: "1",
-            chainId,
+            chainId: CHAIN_ID,
             nonce,
           }),
         verify: async ({ message, signature }) => {

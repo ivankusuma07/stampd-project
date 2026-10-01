@@ -34,6 +34,22 @@ const config: NextConfig = {
   // optional x402/Solana packages. Load those at runtime on the server instead of bundling them.
   serverExternalPackages: ["@coinbase/cdp-sdk", "@base-org/account"],
   // The API is proxied under /api so the SIWE session cookie is first-party.
+  // Production serves one canonical host (NEXT_PUBLIC_SITE_URL): every other alias (other *.vercel.app
+  // names, deploy previews) redirects there, because sign-in messages must name the host the API trusts
+  // (SIWE_DOMAIN). Unset locally, so dev and e2e are unaffected.
+  async redirects() {
+    const site = process.env.NEXT_PUBLIC_SITE_URL;
+    if (!site || process.env.VERCEL_ENV !== "production") return [];
+    const host = new URL(site).host;
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: `(?!${host.replaceAll(".", "\\.")}$).*` }],
+        destination: `${site.replace(/\/$/, "")}/:path*`,
+        permanent: false,
+      },
+    ];
+  },
   async rewrites() {
     return [{ source: "/api/:path*", destination: `${API_URL}/:path*` }];
   },

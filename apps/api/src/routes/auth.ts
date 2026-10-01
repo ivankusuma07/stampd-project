@@ -26,7 +26,11 @@ export const authRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (req, reply) => {
       const result = await verifySiwe(deps, req.body.message, req.body.signature as `0x${string}`);
-      if (!result.ok) return reply.code(401).send({ error: result.error });
+      if (!result.ok) {
+        // the reason only (e.g. "wrong domain"), never the message or signature
+        req.log.info({ siweError: result.error }, "sign-in rejected");
+        return reply.code(401).send({ error: result.error });
+      }
       await deps.db.user.upsert({ where: { wallet: result.address }, update: {}, create: { wallet: result.address } });
       writeSession(reply, result.address, deps.now(), deps.env.NODE_ENV === "production");
       return { wallet: result.address, isAdmin: deps.env.ADMIN_ADDRESSES.includes(result.address) };
