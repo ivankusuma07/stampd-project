@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useAccount, useChainId, useConfig, useReadContract, useSwitchChain, useWriteContract } from "wagmi";
+import { useAccount, useConfig, useReadContract, useSwitchChain, useWriteContract } from "wagmi";
 import { waitForTransactionReceipt } from "wagmi/actions";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { demoUSDAbi, marketHubAbi, outcomeTokensAbi } from "@stampd/chain";
@@ -49,8 +49,9 @@ function reason(err: unknown): string {
  * `quoteSell` to the unit (development plan 1.7, 3.5).
  */
 export function TradePanel({ market }: { market: Market }) {
-  const { address, isConnected } = useAccount();
-  const chainId = useChainId();
+  // the wallet's real network: wagmi's useChainId() reports the app's chain when the wallet is on an
+  // unconfigured one (e.g. Ethereum), which would hide the "Switch network" button
+  const { address, isConnected, chainId } = useAccount();
   const { switchChain } = useSwitchChain();
   const config = useConfig();
   const qc = useQueryClient();

@@ -4,11 +4,11 @@ import Link from "next/link";
 import Script from "next/script";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useAccount, useBalance, useChainId, useConfig, useReadContract, useSwitchChain, useWriteContract } from "wagmi";
+import { useAccount, useBalance, useConfig, useReadContract, useSwitchChain, useWriteContract } from "wagmi";
 import { waitForTransactionReceipt } from "wagmi/actions";
 import { formatEther } from "viem";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { ArrowRight, ArrowUpRight, Check } from "lucide-react";
+import { AlertTriangle, ArrowRight, ArrowUpRight, Check, Plus } from "lucide-react";
 import { demoUSDAbi } from "@stampd/chain";
 import { formatDateTimeUtc, formatUsd } from "@stampd/core";
 import { Button, EmptyState } from "@stampd/ui";
@@ -104,6 +104,7 @@ export default function FaucetPage() {
           {TESTNET ? "Usually arrives within a minute or two." : "Arrives in minutes."} You need gas before anything else works,
           including claiming demo USD.
         </p>
+        <NetworkHelp gasWei={isConnected ? gas.data?.value : undefined} />
       </Step>
 
       <Step n={2} done={hasUsd} title="Demo USD to trade with">
@@ -125,6 +126,120 @@ export default function FaucetPage() {
       <p className="text-xs text-ink-3">
         Demo USD has no value, can only move to STAMPD contracts, and can&apos;t be cashed out.
       </p>
+    </div>
+  );
+}
+
+/** Same address on every chain, but only ETH on this chain pays gas here: say so, and add the network in one click. */
+function NetworkHelp({ gasWei }: { gasWei: bigint | undefined }) {
+  // useAccount().chainId is the wallet's real network; wagmi's useChainId() falls back to the
+  // app's chain when the wallet is on one we don't configure (e.g. Ethereum), hiding the mismatch.
+  const { isConnected, chainId: walletChain } = useAccount();
+  const { switchChainAsync } = useSwitchChain();
+  const [manual, setManual] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
+  const rpc = chain.rpcUrls.default.http[0]!; // public RPC only: never hand wallets a keyed provider URL
+  const explorer = chain.blockExplorers?.default.url;
+  const onChain = isConnected && walletChain === CHAIN_ID;
+
+  const add = async () => {
+    setNote(null);
+    try {
+      if (isConnected) {
+        await switchChainAsync({ chainId: CHAIN_ID }); // wagmi adds the network first when the wallet doesn't know it
+      } else {
+        const eth = (window as unknown as { ethereum?: { request: (a: { method: string; params: unknown[] }) => Promise<unknown> } }).ethereum;
+        if (!eth) {
+          setManual(true);
+          return;
+        }
+        await eth.request({
+          method: "wallet_addEthereumChain",
+          params: [
+            {
+              chainId: `0x${CHAIN_ID.toString(16)}`,
+              chainName: chain.name,
+              nativeCurrency: chain.nativeCurrency,
+              rpcUrls: [rpc],
+              blockExplorerUrls: explorer ? [explorer] : [],
+            },
+          ],
+        });
+      }
+      setNote(`${chain.name} is in your wallet.`);
+    } catch {
+      setNote("Your wallet didn't add it. You can enter the settings by hand below.");
+      setManual(true);
+    }
+  };
+
+  return (
+    <div className="mt-4 space-y-3 border-t border-dashed border-rule-strong pt-4">
+      <p className="font-medium text-ink">
+        Your {chain.nativeCurrency.symbol} must be on {chain.name}. The same wallet address on Ethereum, Arbitrum or Base doesn&apos;t
+        count until you bridge it.
+      </p>
+
+      {isConnected && !onChain ? (
+        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-no/40 bg-no-bg px-4 py-3 text-no">
+          <AlertTriangle size={16} aria-hidden />
+          <span className="flex-1">Your wallet is on another network.</span>
+          <Button variant="secondary" onClick={add}>
+            Switch to {chain.name}
+          </Button>
+        </div>
+      ) : null}
+
+      {onChain && gasWei === 0n ? (
+        <div className="flex items-start gap-3 rounded-xl border border-no/40 bg-no-bg px-4 py-3 text-no">
+          <AlertTriangle size={16} className="mt-0.5 shrink-0" aria-hidden />
+          <span>
+            No {chain.nativeCurrency.symbol} on {chain.name} yet. If you have ETH elsewhere, it&apos;s on a different network: bridge it
+            here with one of the links above.
+          </span>
+        </div>
+      ) : null}
+
+      {onChain && gasWei !== undefined && gasWei > 0n ? (
+        <p className="flex items-center gap-2 text-yes">
+          <Check size={14} aria-hidden /> Your wallet is on {chain.name}.
+        </p>
+      ) : null}
+
+      {!onChain ? (
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={add}
+            className="inline-flex h-10 items-center gap-2 rounded-full border border-rule-strong bg-surface-2 px-4 text-sm font-semibold text-ink hover:border-brand/50"
+          >
+            <Plus size={16} aria-hidden /> Add {chain.name} to my wallet
+          </button>
+          <button type="button" onClick={() => setManual((m) => !m)} className="text-xs text-ink-3 underline hover:text-ink">
+            {manual ? "Hide" : "Show"} network settings
+          </button>
+        </div>
+      ) : null}
+      {note ? <p className="text-xs text-ink-2">{note}</p> : null}
+
+      {manual ? (
+        <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 rounded-xl border border-rule bg-surface-2/60 px-4 py-3 font-mono text-xs">
+          <dt className="text-ink-3">Network name</dt>
+          <dd className="text-ink">{chain.name}</dd>
+          <dt className="text-ink-3">Chain ID</dt>
+          <dd className="text-ink">{CHAIN_ID}</dd>
+          <dt className="text-ink-3">RPC URL</dt>
+          <dd className="break-all text-ink">{rpc}</dd>
+          <dt className="text-ink-3">Currency</dt>
+          <dd className="text-ink">{chain.nativeCurrency.symbol}</dd>
+          {explorer ? (
+            <>
+              <dt className="text-ink-3">Explorer</dt>
+              <dd className="break-all text-ink">{explorer}</dd>
+            </>
+          ) : null}
+        </dl>
+      ) : null}
     </div>
   );
 }
@@ -163,8 +278,7 @@ function Step({ n, title, done, children }: { n: number; title: string; done: bo
 
 /** Captcha, then the API signs a voucher bound to this wallet and its nonce, then the wallet claims onchain. */
 function Claim({ claimUsd, hasGas, onClaimed }: { claimUsd?: number; hasGas: boolean; onClaimed: () => void }) {
-  const { address } = useAccount();
-  const chainId = useChainId();
+  const { address, chainId } = useAccount(); // the wallet's real network (see NetworkHelp)
   const { switchChain } = useSwitchChain();
   const config = useConfig();
   const toasts = useToasts();
