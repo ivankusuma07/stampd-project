@@ -90,7 +90,7 @@ function Claim() {
         </div>
         <div className="border-t border-rule-strong pt-2">
           <dt className="text-xs text-ink-3 uppercase">Per claim, max</dt>
-          <dd className="text-2xl">{max.data !== undefined ? formatUsd(max.data, { decimals: 0 }) : "—"}</dd>
+          <dd className="text-2xl">{max.data !== undefined ? formatUsd(max.data, { decimals: 0 }) : "-"}</dd>
         </div>
       </dl>
       {chainId !== CHAIN_ID ? (

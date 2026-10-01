@@ -207,7 +207,7 @@ export function ShareReceipt({ market, postedAt }: { market: Market; postedAt?: 
   const [copied, setCopied] = useState(false);
   const share = async () => {
     const url = `${window.location.origin}/markets/${market.id}`;
-    const text = `${market.question} — ${market.result ? `resolved ${market.result}` : "live odds"} on STAMPD`;
+    const text = `${market.question} (${market.result ? `resolved ${market.result}` : "live odds"}) on STAMPD`;
     if (navigator.share) {
       try {
         await navigator.share({ url, text });
@@ -312,7 +312,7 @@ export function WatchFlag({ market, watching }: { market: Market; watching: bool
           </Button>
         </form>
       ) : null}
-      {flagged ? <p className="text-xs text-ink-2">Thanks — flagged for review.</p> : null}
+      {flagged ? <p className="text-xs text-ink-2">Thanks, flagged for review.</p> : null}
     </div>
   );
 }

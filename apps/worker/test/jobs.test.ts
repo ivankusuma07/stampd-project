@@ -192,7 +192,7 @@ describe("ingest (plan B6b)", () => {
     await fetchSubmittedPost(h.deps, { submissionId: excluded.id });
     const rows = await db.submission.findMany({ orderBy: { xPostId: "asc" } });
     expect(rows.map((r) => [r.status, r.reason])).toEqual([
-      ["REJECTED", "post not found — it may be deleted or private"],
+      ["REJECTED", "post not found: it may be deleted or private"],
       ["REJECTED", "this account asked not to be listed"],
     ]);
     expect(h.jobs.filter((j) => j.name === "notify.fanout")).toHaveLength(2);

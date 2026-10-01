@@ -166,7 +166,7 @@ export default async function MarketPage({ params }: { params: Params }) {
                 ) : m.createTxHash ? (
                   `tx ${shortHash(m.createTxHash)}`
                 ) : (
-                  "—"
+                  "-"
                 )}
               </dd>
             </div>

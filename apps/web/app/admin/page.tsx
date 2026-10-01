@@ -78,7 +78,7 @@ function Draft({ item, onDone }: { item: QueueItem; onDone: () => void }) {
         method: "POST",
         json: { edits: changed, openingPriceBps: Math.round(Number(price) * 100), seedUsd: Number(seed) },
       });
-      setMsg(r.softWarnings.length ? `Approved with warnings: ${r.softWarnings.join(", ")}` : "Approved — creating onchain");
+      setMsg(r.softWarnings.length ? `Approved with warnings: ${r.softWarnings.join(", ")}` : "Approved. Creating it onchain…");
       onDone();
     } catch (err) {
       setMsg(err instanceof ApiError ? `${err.message}${err.body.messages ? `: ${(err.body.messages as string[]).join("; ")}` : ""}` : "failed");
@@ -93,7 +93,7 @@ function Draft({ item, onDone }: { item: QueueItem; onDone: () => void }) {
     <article className="rounded-2xl border border-rule bg-surface p-4">
       <div className="flex flex-wrap items-center gap-2 text-xs text-ink-3">
         <span>@{item.post.authorHandle}</span>·<span>{item.source === "WEB" ? `submitted by ${shortAddress(item.submittedBy ?? "")}` : "timeline"}</span>·
-        <span>{timeAgo(item.createdAt)} ago</span>·<span>AI would: {item.aiDecision ?? "—"}</span>
+        <span>{timeAgo(item.createdAt)} ago</span>·<span>AI would: {item.aiDecision ?? "-"}</span>
         {item.template ? <span>· template {item.template}</span> : null}
         {item.post.kolExcluded ? <span className="text-no">· KOL EXCLUDED</span> : null}
       </div>
@@ -186,8 +186,8 @@ function Queue() {
           {data.items.map((i) => (
             <li key={i.id} className="py-2 text-sm">
               <span className="font-serif">{String(i.extracted?.question ?? i.post.text).slice(0, 140)}</span>
-              {i.reviewReason ? <span className="text-ink-3"> — {i.reviewReason}</span> : null}
-              {i.createError ? <span className="text-no"> — {i.createError}</span> : null}
+              {i.reviewReason ? <span className="text-ink-3"> · {i.reviewReason}</span> : null}
+              {i.createError ? <span className="text-no"> · {i.createError}</span> : null}
             </li>
           ))}
         </ul>
@@ -437,7 +437,7 @@ function Health() {
         </div>
         <div>
           <dt className="text-xs text-ink-3 uppercase">Indexed block</dt>
-          <dd>{data.indexer.block ?? "—"}</dd>
+          <dd>{data.indexer.block ?? "-"}</dd>
         </div>
       </dl>
       <pre className="overflow-auto rounded-xl bg-surface p-3 font-mono text-xs">{JSON.stringify(data.scraper, null, 2)}</pre>
@@ -510,7 +510,7 @@ function Templates() {
             <tr key={id} className="border-b border-rule">
               <td className="py-2 font-mono">{id}</td>
               <td className="py-2 text-right font-mono">
-                {t.rate === null ? "—" : `${Math.round(t.rate * 100)}%`} · {t.n} cases {ready ? "" : <span className="text-ink-3">(needs ≥95% on ≥100)</span>}
+                {t.rate === null ? "-" : `${Math.round(t.rate * 100)}%`} · {t.n} cases {ready ? "" : <span className="text-ink-3">(needs ≥95% on ≥100)</span>}
               </td>
               <td className="py-2 text-right">
                 <Button

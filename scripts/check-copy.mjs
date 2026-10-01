@@ -25,8 +25,22 @@ const walk = (p) => {
 };
 for (const s of SCAN) walk(join(ROOT, s));
 
+// Owner's style rule: no em dashes in anything a user can read. Also covers api/worker messages
+// that reach the UI (alerts, submission errors). Comments are exempt.
+const DASH_SCAN = ["apps/api/src", "apps/worker/src"];
+for (const s of DASH_SCAN) walk(join(ROOT, s));
+const EM_DASH = /—/;
+const stripComments = (line) => (/^\s*(\/\/|\*|\/\*)/.test(line) ? "" : line.replace(/(^|\s)\/\/.*$/, ""));
+
 const problems = [];
 for (const f of files) {
+  readFileSync(f, "utf8")
+    .split("\n")
+    .forEach((line, i) => {
+      if (EM_DASH.test(stripComments(line))) problems.push(`${relative(ROOT, f)}:${i + 1}: em dash in user-facing text: ${line.trim().slice(0, 120)}`);
+    });
+}
+for (const f of files.filter((f) => !DASH_SCAN.some((d) => relative(ROOT, f).replaceAll("\\", "/").startsWith(d)))) {
   readFileSync(f, "utf8")
     .split("\n")
     .forEach((line, i) => {

@@ -145,7 +145,7 @@ export default async function Home({ searchParams }: { searchParams: Search }) {
           Saw a bold call? <span className="text-gradient">Put it on the record.</span>
         </h2>
         <p className="relative mx-auto mt-3 max-w-xl text-ink-2">
-          Paste a link to a post on X. If it&apos;s a dated, checkable prediction, it becomes a market — and you get the credit.
+          Paste a link to a post on X. If it&apos;s a dated, checkable prediction, it becomes a market, and you get the credit.
         </p>
         <div className="relative mt-7 flex flex-wrap justify-center gap-3">
           <Link href="/submit" className="inline-flex h-12 items-center rounded-full bg-brand px-7 text-sm font-semibold text-brand-ink shadow-[0_8px_30px_-8px_var(--brand)] hover:brightness-110">

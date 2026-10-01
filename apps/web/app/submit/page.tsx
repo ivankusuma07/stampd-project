@@ -73,7 +73,7 @@ function SubmitForm() {
         <p id="post-url-help" className="text-xs text-ink-3">
           {url && !parsed
             ? "That isn't an x.com or twitter.com post link."
-            : "A dated, checkable call works best — e.g. “BTC closes above $90k before end of March”. Up to 5 a day."}
+            : "A dated, checkable call works best, e.g. “BTC closes above $90k before end of March”. Up to 5 a day."}
         </p>
         {error ? (
           <p className="text-sm text-no">
@@ -81,7 +81,7 @@ function SubmitForm() {
             {error.marketId ? (
               <>
                 {" "}
-                — <Link href={`/markets/${error.marketId}`} className="underline">see the market</Link>
+                <Link href={`/markets/${error.marketId}`} className="underline">See the market</Link>.
               </>
             ) : null}
           </p>
@@ -112,7 +112,7 @@ function SubmitForm() {
                   </a>
                   {s.reason ? <p className="mt-1 text-sm text-no">{s.reason}</p> : null}
                   {s.status === "QUEUED" ? (
-                    <p className="mt-1 text-xs text-ink-3">Queued — it&apos;s picked up automatically if the X feed is down.</p>
+                    <p className="mt-1 text-xs text-ink-3">Queued. It&apos;s picked up automatically if the X feed is down.</p>
                   ) : null}
                 </div>
                 <span className="font-mono text-xs text-ink-3"><RelativeTime iso={s.createdAt} /></span>

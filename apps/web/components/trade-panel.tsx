@@ -36,7 +36,7 @@ const DEADLINE_SEC = 10 * 60;
 function reason(err: unknown): string {
   const msg = (err as { shortMessage?: string; message?: string }).shortMessage ?? (err as Error).message ?? "failed";
   if (/User rejected|denied/i.test(msg)) return "Cancelled in wallet";
-  if (/Slippage/.test(msg)) return "Price moved past your slippage limit — try again";
+  if (/Slippage/.test(msg)) return "Price moved past your slippage limit. Try again.";
   if (/TradingClosed/.test(msg)) return "Trading has closed";
   if (/MarketIsPaused|EnforcedPause/.test(msg)) return "Trading is paused";
   if (/TransferRestricted/.test(msg)) return "Demo USD can only move to STAMPD contracts";

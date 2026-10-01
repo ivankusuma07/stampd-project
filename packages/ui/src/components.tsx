@@ -1,6 +1,6 @@
 import type { AnchorHTMLAttributes, ButtonHTMLAttributes, InputHTMLAttributes, ReactNode } from "react";
 import { formatCents, formatCentsDelta, formatEdge } from "@stampd/core";
-import { Minus, Sparkles, TrendingDown, TrendingUp } from "lucide-react";
+import { Sparkles, TrendingDown, TrendingUp } from "lucide-react";
 
 /**
  * STAMPD UI primitives ("Neon Receipt", docs/decisions.md D14). YES/NO always carry the word,
@@ -29,9 +29,9 @@ export function PriceChip({ side, bps, className }: { side: Side; bps: number; c
   );
 }
 
-/** 24h change: arrow + cents. The sign carries the meaning; colour reinforces it. */
+/** 24h change: trend arrow + cents (no arrow when unchanged). The sign carries the meaning; colour reinforces it. */
 export function Change({ bps, className }: { bps: number | null; className?: string }) {
-  if (bps === null) return <span className={cx("font-mono text-sm text-ink-3", className)}>—</span>;
+  if (bps === null) return <span className={cx("font-mono text-sm text-ink-3", className)}>-</span>;
   const cls = bps > 0 ? "text-yes" : bps < 0 ? "text-no" : "text-ink-3";
   return (
     <span className={cx("inline-flex items-center gap-0.5 font-mono text-sm tabular-nums", cls, className)}>
@@ -39,9 +39,7 @@ export function Change({ bps, className }: { bps: number | null; className?: str
         <TrendingUp size="1em" strokeWidth={2.25} aria-hidden />
       ) : bps < 0 ? (
         <TrendingDown size="1em" strokeWidth={2.25} aria-hidden />
-      ) : (
-        <Minus size="1em" strokeWidth={2.25} aria-hidden />
-      )}
+      ) : null}
       {formatCentsDelta(bps)}
     </span>
   );

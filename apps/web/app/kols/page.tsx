@@ -41,11 +41,11 @@ export default async function KolsPage({ searchParams }: { searchParams: Search 
           </h1>
           <p className="mt-3 max-w-2xl text-ink-2">
             Accounts whose calls become markets. <strong className="text-ink">Hit rate</strong> counts calls that resolved their way.{" "}
-            <strong className="text-ink">Edge</strong> measures how much they beat the crowd&apos;s odds —{" "}
+            <strong className="text-ink">Edge</strong> measures how much they beat the crowd&apos;s odds (
             <Link href="/insights#method" className="text-accent hover:underline">
               how it&apos;s computed
             </Link>
-            .
+            ).
           </p>
           <div className="mt-6">
             <Tabs label="Sort KOLs">

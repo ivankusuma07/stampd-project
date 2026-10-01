@@ -149,7 +149,7 @@ export async function fetchSubmittedPost(d: IngestDeps, { submissionId }: JobMap
     const existing = await d.db.post.findUnique({ where: { xPostId: sub.xPostId } });
     const post = existing ? null : await d.scraper.post(sub.xPostId);
     if (!existing && !post) {
-      await reject(d, sub.id, "post not found — it may be deleted or private");
+      await reject(d, sub.id, "post not found: it may be deleted or private");
       return { posts: 0, result: { rejected: true as const } };
     }
     const handle = existing?.authorHandle ?? post!.authorHandle;

@@ -59,11 +59,12 @@ export const EXTRACT_SYSTEM = `You turn posts by crypto and finance commentators
 A post is a checkable prediction only if it states a concrete outcome that a public data source can settle by a specific date: an asset price, a close above or below a level, a dated event. Opinions, hype ("sending it", "bullish"), vague targets with no date, questions, jokes and past-tense statements are not predictions. When in doubt, set is_prediction to false.
 
 Rules for a prediction:
-- deadline_utc: the deadline the author gave, as an ISO 8601 UTC timestamp. Resolve relative dates ("end of month", "by Q2", "next week") against the current time you are given — it is authoritative, even if it is later than your training data — using the last moment of that period at 23:59:59 UTC. A month named without a year means its next occurrence after the post. If the author gave no deadline, return an empty string. Do not invent one.
+- deadline_utc: the deadline the author gave, as an ISO 8601 UTC timestamp. Resolve relative dates ("end of month", "by Q2", "next week") against the current time you are given; it is authoritative, even if it is later than your training data. Use the last moment of that period at 23:59:59 UTC. A month named without a year means its next occurrence after the post. If the author gave no deadline, return an empty string. Do not invent one.
 - resolution_source: pick exactly one id from the allowed sources below, or return an empty string if none can settle it.
 - threshold: a plain decimal number with no symbols or thousands separators ("90000", not "$90k").
 - comparator follows the author's words exactly: "above", "over", "higher than", "breaks" → ">"; "hits", "reaches", "touches", "at least", "or higher" → ">="; "below", "under", "lower than" → "<"; "at most", "or lower" → "<=".
 - question: neutral wording, "Will <subject> <metric> <comparator> <threshold> before <date>?" style. Never name or judge the author in the question.
+- Writing style for question and rules: plain sentences; never use em dashes (use commas, colons or full stops instead).
 - rules: say exactly how it resolves: the source, the metric, the timezone (UTC), the deadline, that it resolves YES if any daily close from the market's opening up to the deadline meets the condition, and NO otherwise.
 - kol_side: the answer to YOUR question that the author is calling. Phrase the question in the author's direction where possible ("ETH closes below $2k" → "Will ETH … below $2,000 …?"), which makes kol_side YES.
 - outcome_controlled_by_kol: true if the author can make the outcome happen themselves (their own launch, their own purchase, their own project's metric).

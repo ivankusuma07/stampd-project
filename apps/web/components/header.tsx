@@ -31,7 +31,7 @@ function BlockNumber() {
     >
       <LiveDot />
       <span className="text-ink-3">block</span>
-      {data ? formatInt(data) : "—"}
+      {data ? formatInt(data) : "-"}
     </span>
   );
 }

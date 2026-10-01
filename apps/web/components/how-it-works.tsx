@@ -5,7 +5,7 @@ import { GradientText, SpotlightCard } from "@stampd/ui";
 const STEPS = [
   {
     title: "The call",
-    body: "A KOL posts a dated, checkable prediction on X — or you paste one in. AI drafts the market; a human checks it.",
+    body: "A KOL posts a dated, checkable prediction on X, or you paste one in. AI drafts the market; a human checks it.",
   },
   {
     title: "The market",
@@ -17,7 +17,7 @@ const STEPS = [
   },
   {
     title: "The receipt",
-    body: "Winners redeem 1.00 per share. The KOL's record updates: hit rate, and edge — how much they beat the crowd.",
+    body: "Winners redeem 1.00 per share. The KOL's record updates: hit rate and edge (how much they beat the crowd).",
   },
 ];
 

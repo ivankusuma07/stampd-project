@@ -91,7 +91,7 @@ export class ResolverBot {
     const adapter = spec?.resolution ? this.adapters[spec.resolution.source] : undefined;
     const symbol = spec?.resolution ? symbolFor(spec) : null;
     if (!adapter || !symbol || !m.openedAt) {
-      await this.d.alert("resolver.manual", `"${m.question}" has no automatic source — propose it from /admin`, { marketId });
+      await this.d.alert("resolver.manual", `"${m.question}" has no automatic source. Propose it from /admin`, { marketId });
       return false;
     }
     const read = await adapter(symbol, m.openedAt, m.closeTime);

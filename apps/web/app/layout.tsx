@@ -19,7 +19,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: { default: "STAMPD — every call gets a receipt", template: "%s · STAMPD" },
+  title: { default: "STAMPD Markets: every call gets a receipt", template: "%s · STAMPD" },
   description: "Trade the calls crypto KOLs make on X. Every call becomes a market and every result is stamped onchain on Robinhood Chain.",
 };
 

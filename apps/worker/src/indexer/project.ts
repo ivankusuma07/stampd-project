@@ -240,7 +240,7 @@ export async function applyEvent(tx: Tx, e: StoredEvent, effects: Effect[], only
       effects.push({
         kind: "alert",
         alert: "resolution.disputed",
-        message: `Market "${market.question}" was disputed — arbitrate in /admin`,
+        message: `Market "${market.question}" was disputed. Arbitrate it in /admin`,
         data: { marketId: market.id, txHash: e.txHash },
       });
       return;

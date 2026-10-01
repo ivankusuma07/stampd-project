@@ -11,7 +11,7 @@ export function timeAgo(iso: string, now = Date.now()): string {
 
 /** Decimal string of 6-dec units → "$1,234.57"; "—" when missing. */
 export function usd(v: string | null | undefined, opts?: { compact?: boolean }): string {
-  if (v === null || v === undefined) return "—";
+  if (v === null || v === undefined) return "-";
   return formatUsd(BigInt(v), opts);
 }
 

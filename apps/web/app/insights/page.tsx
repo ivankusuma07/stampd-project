@@ -39,7 +39,7 @@ function Bar({ label, value, max, sub, color }: { label: string; value: number; 
 /** Development plan 6.6: totals from the database and the method behind every number. */
 export default async function InsightsPage() {
   const d = await serverGet<Insights>("/insights", 60);
-  const pct = (n: number, of: number) => (of === 0 ? "—" : `${Math.round((n / of) * 100)}%`);
+  const pct = (n: number, of: number) => (of === 0 ? "-" : `${Math.round((n / of) * 100)}%`);
 
   return (
     <div className="space-y-12">
@@ -107,7 +107,7 @@ export default async function InsightsPage() {
           Posts from tracked accounts, and links people paste on the Submit page, are read by an AI model that drafts a
           question, rules and a data source. Code then checks the deadline, the data source and duplicates; a second AI
           pass checks the draft against the post; and a person reviews it before it is listed. Posts are only used to
-          find predictions — never to decide a result.
+          find predictions, never to decide a result.
         </p>
         <h3 className="font-serif text-xl font-semibold">Prices</h3>
         <p>
