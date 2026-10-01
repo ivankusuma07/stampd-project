@@ -99,11 +99,22 @@ if (args.has("--smoke")) {
   run("forge", ["script", "script/Smoke.s.sol", "--rpc-url", rpc, "--broadcast", "--private-key", env.CREATOR_PRIVATE_KEY]);
 }
 
-if (args.has("--verify") && VERIFIER[chainId]) {
-  try {
-    run("forge", [...script, "--resume", "--verify", "--verifier", "blockscout", "--verifier-url", VERIFIER[chainId], "--private-key", env.DEPLOYER_PRIVATE_KEY]);
-  } catch {
-    console.warn("verification failed — the contracts are deployed; retry with --verify later");
+// Verify each contract directly (forge's script --resume --verify needs the full broadcast context and
+// failed on mainnet). Blockscout first; if its API is unreachable (the mainnet explorer sits behind a
+// Cloudflare challenge), Sourcify, which Blockscout reads verified sources from.
+if (args.has("--verify")) {
+  for (const [name, address] of Object.entries(deployment.contracts)) {
+    const base = ["verify-contract", address, `src/${name}.sol:${name}`, "--rpc-url", rpc, "--guess-constructor-args"];
+    try {
+      if (!VERIFIER[chainId]) throw new Error("no blockscout verifier for this chain");
+      run("forge", [...base, "--verifier", "blockscout", "--verifier-url", VERIFIER[chainId], "--watch"]);
+    } catch {
+      try {
+        run("forge", [...base, "--verifier", "sourcify", "--chain", String(chainId)]);
+      } catch {
+        console.warn(`${name}: verification failed; the contract is deployed, retry with --verify later`);
+      }
+    }
   }
 }
 
