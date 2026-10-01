@@ -32,6 +32,7 @@ describe("service", () => {
     await h.kv.set("status:ingest:paused", "1");
     const res = (await h.app.inject("/status")).json();
     expect(res.ingest.paused).toBe(true);
+    expect(res.faucet.claimUsd).toBe(100);
     await h.kv.set("status:ingest:paused", "0");
   });
 });

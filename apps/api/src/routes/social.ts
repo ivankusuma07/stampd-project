@@ -234,6 +234,8 @@ export const socialRoutes: FastifyPluginAsyncZod = async (app) => {
       chainId: deps.env.CHAIN_ID,
       ingest: { paused: paused === "1", reason, lastSuccessAt: lastSuccess },
       indexer: { block: indexerBlock },
+      // public so the faucet page can label its button ("Claim $100 demo USD") before a claim
+      faucet: { claimUsd: deps.env.FAUCET_CLAIM_USD },
     };
   });
 };

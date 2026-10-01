@@ -27,7 +27,7 @@ test("every main page renders", async ({ page }) => {
     ["/kol/example_kol", /Live calls/],
     ["/insights", /Methodology/],
     ["/contracts", /Contracts/],
-    ["/faucet", /Faucet/],
+    ["/faucet", /Get gas/],
     ["/submit", /Submit a call/],
     ["/portfolio", /Portfolio/],
     ["/callouts", /Callouts/],

@@ -161,4 +161,6 @@ export type Status = {
   chainId: number;
   ingest: { paused: boolean; reason: string | null; lastSuccessAt: string | null };
   indexer: { block: string | null };
+  /** absent on an API older than the faucet step layout */
+  faucet?: { claimUsd: number };
 };
