@@ -62,6 +62,9 @@ export function TradePanel({ market }: { market: Market }) {
   const [input, setInput] = useState("");
   const [slippage, setSlippage] = useState(100n);
   const [busy, setBusy] = useState(false);
+  // Which wallet confirmation a buy is waiting on, so the button can say "Step 1 of 2" / "Step 2 of 2".
+  const [step, setStep] = useState<null | "approve" | "trade">(null);
+  const [twoStep, setTwoStep] = useState(false);
 
   const onchainId = market.onchainId ? BigInt(market.onchainId) : null;
   const hub = deployment?.contracts.MarketHub;
@@ -128,6 +131,9 @@ export function TradePanel({ market }: { market: Market }) {
   const open = market.status === "OPEN" && new Date(market.closeTime) > new Date() && !market.paused && !live.data?.paused;
   const wrongChain = isConnected && chainId !== CHAIN_ID;
   const insufficient = mode === "buy" && amount !== null && balance.data !== undefined && amount > balance.data;
+  // A buy first needs an allowance for exactly this amount (never unlimited: wallets rightly warn
+  // about unlimited spending), so the wallet asks twice whenever the current allowance is short.
+  const needsApproval = mode === "buy" && amount !== null && amount > 0n && (allowance.data ?? 0n) < amount;
 
   async function run(label: string, send: () => Promise<`0x${string}`>) {
     const id = toasts.push({ title: `${label}…`, description: "Confirm in your wallet", tone: "info" });
@@ -150,15 +156,19 @@ export function TradePanel({ market }: { market: Market }) {
     const deadline = BigInt(Math.floor(Date.now() / 1000) + DEADLINE_SEC);
     try {
       if (mode === "buy") {
-        if ((allowance.data ?? 0n) < amount) {
-          const ok = await run("Approve demo USD", () =>
-            writeContractAsync({ address: usd, abi: demoUSDAbi, functionName: "approve", args: [hub, 2n ** 255n] }),
+        const approving = (allowance.data ?? 0n) < amount;
+        setTwoStep(approving);
+        if (approving) {
+          setStep("approve");
+          const ok = await run(`Step 1 of 2: allow ${formatUsd(amount)} demo USD`, () =>
+            writeContractAsync({ address: usd, abi: demoUSDAbi, functionName: "approve", args: [hub, amount] }),
           );
           if (!ok) return;
           await allowance.refetch();
         }
+        setStep("trade");
         const minOut = minOutWithSlippage(quote.q.shares, slippage);
-        await run(`Buy ${side}`, () =>
+        await run(approving ? `Step 2 of 2: buy ${side}` : `Buy ${side}`, () =>
           writeContractAsync({ address: hub, abi: marketHubAbi, functionName: "buy", args: [onchainId, outcome, amount, minOut, deadline] }),
         );
       } else {
@@ -177,6 +187,8 @@ export function TradePanel({ market }: { market: Market }) {
       await qc.invalidateQueries({ queryKey: ["market", market.id] });
     } finally {
       setBusy(false);
+      setStep(null);
+      setTwoStep(false);
     }
   }
 
@@ -315,13 +327,22 @@ export function TradePanel({ market }: { market: Market }) {
               onClick={submit}
             >
               {busy
-                ? "Waiting for wallet…"
+                ? step === "approve"
+                  ? "Step 1 of 2: allow in your wallet…"
+                  : twoStep
+                    ? "Step 2 of 2: confirm the buy…"
+                    : "Waiting for wallet…"
                 : insufficient
                   ? "Not enough demo USD"
-                  : `${mode === "buy" ? "Buy" : "Sell"} ${side}`}
+                  : `${mode === "buy" ? "Buy" : "Sell"} ${side}${needsApproval ? " · 2 steps" : ""}`}
             </Button>
           </ClickSpark>
         )}
+        {isConnected && !wrongChain && open && needsApproval && !insufficient && amount ? (
+          <p className="text-center text-xs text-ink-2">
+            Your wallet asks twice: first to allow exactly {formatUsd(amount)} demo USD for this trade, then to buy.
+          </p>
+        ) : null}
         {isConnected && !wrongChain && (balance.data ?? 0n) === 0n && mode === "buy" ? (
           <p className="text-center text-xs text-ink-2">
             No demo USD yet? <a href="/faucet" className="text-accent hover:underline">Get some from the faucet</a>.
