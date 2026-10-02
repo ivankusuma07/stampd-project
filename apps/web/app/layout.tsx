@@ -100,13 +100,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </a>
         <div className="backdrop" aria-hidden />
         <Providers>
-          <Header />
-          <Ticker />
-          <IngestBanner />
-          <main id="main" className="relative z-10 mx-auto max-w-7xl px-4 py-8 lg:px-6">
-            {children}
-          </main>
-          <Footer />
+          {/* Our own full-height column: RainbowKit wraps the page in a plain <div>, so a flex <body> can't
+              reach <main>. flex-1 on <main> keeps the footer at the bottom of the window on short pages. */}
+          <div className="flex min-h-screen flex-col">
+            <Header />
+            <Ticker />
+            <IngestBanner />
+            <main id="main" className="relative z-10 mx-auto w-full max-w-7xl flex-1 px-4 py-8 lg:px-6">
+              {children}
+            </main>
+            <Footer />
+          </div>
         </Providers>
       </body>
     </html>
