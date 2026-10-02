@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { BlurText, CountUp, Magnet, RotatingText, ShinyText, StarBorder, useCalm } from "@stampd/ui";
 import type { Insights } from "@/lib/types";
 import { ArrowRight } from "lucide-react";
+import { ContractAddress } from "./contract-address";
 
 // WebGL runs in the browser only, and only when motion is allowed.
 const LightRays = dynamic(() => import("@stampd/ui").then((m) => m.LightRays), { ssr: false });
@@ -102,6 +103,8 @@ export function Hero({ insights }: { insights: Insights | null }) {
             Submit a call
           </Link>
         </div>
+
+        <ContractAddress className="mt-6" />
 
         {insights && insights.markets > 0 ? (
           <dl className="mx-auto mt-12 grid max-w-2xl grid-cols-2 gap-6 rounded-2xl border border-rule bg-surface/60 px-6 py-5 backdrop-blur sm:grid-cols-4">

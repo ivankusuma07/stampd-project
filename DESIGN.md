@@ -173,6 +173,7 @@ Buttons and the active nav pill carry an inline brand glow: `shadow-[0_8px_30px_
 - `MiniReceipt`: resolved-call card on `GlareHover`; the tx hash decrypts into view; stamp bottom-right.
 - `LivePrice`: cents via `Counter` (rolls from old to new value, never from 0) plus the 600 ms flash.
 - `PriceChart`: Recharts step area. `accent` 2 px line over a fading gradient fill, dashed `rule` horizontal grid, mono `ink-3` ticks at 11 px, dashed crosshair, mono tooltip.
+- `ContractAddress`: glass pill reading `CA` plus the address in mono (short form on phones) with a lucide copy button, in the hero under the CTAs and in the footer. Until `NEXT_PUBLIC_CONTRACT_ADDRESS` is set it reads "To be announced"; never fill it with a guessed or sample address.
 - `Toasts`: `SwipeToast` for transactions. Fuse colour by tone (`ink` pending, `yes` confirmed, `no` failed), tx hash in mono linking to the explorer. At most three on screen.
 - Tables: `w-full text-sm`; header row `border-b border-rule text-[10px] tracking-[0.2em] uppercase text-ink-3`; numeric columns `text-right font-mono`.
 

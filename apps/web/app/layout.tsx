@@ -7,6 +7,7 @@ import { Header } from "@/components/header";
 import { Ticker } from "@/components/ticker";
 import { Logo } from "@/components/logo";
 import { XFooterLink } from "@/components/x-link";
+import { ContractAddress } from "@/components/contract-address";
 import { BlockNumber } from "@/components/header";
 import { serverGet } from "@/lib/api";
 import type { Status } from "@/lib/types";
@@ -57,6 +58,7 @@ function Footer() {
             <p className="font-mono text-xs text-ink-3">Settled onchain · Robinhood Chain</p>
             <BlockNumber />
           </div>
+          <ContractAddress />
           <XFooterLink />
         </div>
         <ul className="space-y-2">
