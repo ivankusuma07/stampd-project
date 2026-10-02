@@ -226,4 +226,21 @@ describe.skipIf(!hasAnvil)("indexer against anvil", () => {
     expect(trades.map((x) => [x.wallet, x.outcome])).toEqual([[bob.address.toLowerCase(), "NO"]]);
     expect(await reconcile(db, a.chain, d, async () => {})).toEqual([]);
   });
+
+  it("treats a failing RPC as a retry, never as a reorg (mainnet incident, 1 Oct 2026)", async () => {
+    await indexer.runUntilHead();
+    const before = { events: await db.chainEvent.count(), cursor: await db.indexerCursor.findFirstOrThrow() };
+    expect(before.cursor.blockHash).not.toBe("");
+    // a rate-limited RPC: every block lookup fails
+    const flaky = new Proxy(a.chain, {
+      get: (target, prop, recv) =>
+        prop === "getBlock" ? async () => Promise.reject(new Error("429 Too Many Requests")) : Reflect.get(target, prop, recv),
+    });
+    const fragile = new Indexer({ db, chain: flaky, deployment: d, confirmations: 0, batchBlocks: 50, onEffects: async (e) => void effects.push(...e) });
+    effects = [];
+    await expect(fragile.tick()).rejects.toThrow(/429/);
+    expect(effects.some((e) => e.kind === "alert" && e.alert === "indexer.reorg")).toBe(false);
+    expect(await db.chainEvent.count()).toBe(before.events);
+    expect((await db.indexerCursor.findFirstOrThrow()).blockNumber).toBe(before.cursor.blockNumber);
+  });
 });

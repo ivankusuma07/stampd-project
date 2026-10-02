@@ -48,8 +48,11 @@ export class Indexer {
     const cursor = await this.cursor();
 
     if (cursor.blockHash) {
-      const current = await chain.getBlock({ blockNumber: cursor.blockNumber }).catch(() => null);
-      if (!current || current.hash !== cursor.blockHash) {
+      // An RPC failure is NOT a reorg: let it throw so the job retries next tick. Treating a failed or
+      // rate-limited lookup as a mismatch rewound mainnet to the deploy block and wiped the index
+      // (7 times on 1 Oct 2026). Only a block that comes back with a different hash is a reorg.
+      const current = await chain.getBlock({ blockNumber: cursor.blockNumber });
+      if (current.hash !== cursor.blockHash) {
         const fork = await this.rewind(cursor.blockNumber);
         return { from: fork, to: fork, events: 0, reorg: true };
       }
@@ -141,8 +144,9 @@ export class Indexer {
     let fork = BigInt(Math.max(0, deployment.deployBlock - 1));
     let forkHash = "";
     for (const b of stored) {
-      const current = await chain.getBlock({ blockNumber: b.blockNumber }).catch(() => null);
-      if (current?.hash === b.blockHash) {
+      // throws on RPC failure, which aborts the rewind before anything is deleted
+      const current = await chain.getBlock({ blockNumber: b.blockNumber });
+      if (current.hash === b.blockHash) {
         fork = b.blockNumber;
         forkHash = b.blockHash;
         break;
