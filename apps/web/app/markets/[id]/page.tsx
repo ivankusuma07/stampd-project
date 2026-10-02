@@ -12,6 +12,7 @@ import { TradePanel } from "@/components/trade-panel";
 import { Activity, PositionBox, ResolutionPanel, ShareReceipt, WatchFlag } from "@/components/market-side";
 import { MarketCallouts } from "@/components/callouts";
 import { RelativeTime } from "@/components/relative-time";
+import { SettlementCard } from "@/components/settlement";
 import { ArrowUpRight } from "lucide-react";
 
 type Params = Promise<{ id: string }>;
@@ -88,6 +89,7 @@ export default async function MarketPage({ params }: { params: Params }) {
             </div>
           </div>
         </header>
+        <SettlementCard market={m} />
       </div>
 
       <aside className="lg:col-span-4 lg:col-start-9 lg:row-span-2 lg:row-start-1">

@@ -138,6 +138,7 @@ export function ResolutionPanel({ market }: { market: Market }) {
 
   const windowOpen = !res.disputed && !res.finalizedAt && new Date(res.disputeEnds) > new Date();
   const proposeUrl = explorerTxUrl(CHAIN_ID, res.proposedTxHash);
+  const finalUrl = res.finalizedTxHash ? explorerTxUrl(CHAIN_ID, res.finalizedTxHash) : null;
 
   return (
     <div className="space-y-3 text-sm">
@@ -156,7 +157,19 @@ export function ResolutionPanel({ market }: { market: Market }) {
       {res.disputed ? (
         <p className="text-no">Disputed by {shortAddress(res.disputer ?? "")}. The arbiter multisig decides; both bonds go to whoever is right.</p>
       ) : res.finalizedAt ? (
-        <p>Final: {res.finalOutcome} on {formatDateTimeUtc(res.finalizedAt)}.</p>
+        <p>
+          Final: {res.finalOutcome} on {formatDateTimeUtc(res.finalizedAt)}
+          {finalUrl ? (
+            <>
+              {" "}
+              ·{" "}
+              <a href={finalUrl} target="_blank" rel="noreferrer" className="font-mono underline">
+                tx {shortHash(res.finalizedTxHash!)}
+              </a>
+            </>
+          ) : null}
+          .
+        </p>
       ) : (
         <p>Dispute window closes {formatDateTimeUtc(res.disputeEnds)}.</p>
       )}

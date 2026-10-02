@@ -171,6 +171,7 @@ Buttons and the active nav pill carry an inline brand glow: `shadow-[0_8px_30px_
 - `PageHeader`: glass title card for secondary pages (eyebrow, display title, blurb, optional controls, `tone` for the corner glow).
 - `MarketCard`: `SpotlightCard` with KOL row, question, big YES `LivePrice`, `Change`, NO price, `ProbabilityBar`, volume and time left. Lifts `-translate-y-0.5` on hover.
 - `MiniReceipt`: resolved-call card on `GlareHover`; the tx hash decrypts into view; stamp bottom-right.
+- `SettlementCard`: shown under the market header once a market settles. Display-size outcome ("YES won", tinted and glowing by side), the KOL's stamp, then receipt-style lines: market, outcome, the full settlement TX hash with a copy button, a visible "View on Robinhood Chain explorer" link and the settle time. "Copy result details" copies all of it as plain text.
 - `LivePrice`: cents via `Counter` (rolls from old to new value, never from 0) plus the 600 ms flash.
 - `PriceChart`: Recharts step area. `accent` 2 px line over a fading gradient fill, dashed `rule` horizontal grid, mono `ink-3` ticks at 11 px, dashed crosshair, mono tooltip.
 - `ContractAddress`: glass pill reading `CA` plus the address in mono (short form on phones) with a lucide copy button, in the hero under the CTAs and in the footer. Until `NEXT_PUBLIC_CONTRACT_ADDRESS` is set it reads "To be announced"; never fill it with a guessed or sample address.
